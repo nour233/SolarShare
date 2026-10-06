@@ -574,3 +574,22 @@
 .footer .copyright a:hover {
     color: var(--primary);
 }
+/* SolarShare catalog: proportions consistent with the full-width template. */
+.equipment-section{max-width:1600px;padding:75px 48px;margin:0 auto;scroll-margin-top:110px}
+.equipment-heading{max-width:850px;margin-bottom:32px}
+.equipment-heading h6{font-size:18px;margin-bottom:16px}
+.equipment-heading h2{font-size:44px;line-height:1.18;margin-bottom:0}
+.equipment-filters{margin-bottom:42px}
+.equipment-filters .btn{padding:12px 23px;font-size:16px}
+.equipment-card{display:flex;flex-direction:column;background:#f6f7f8;border:1px solid #e9eeea;box-shadow:0 8px 24px rgba(26,42,54,.045)}
+.equipment-photo,.equipment-placeholder{height:290px;flex-shrink:0;object-fit:cover}
+.equipment-placeholder{background:linear-gradient(135deg,#e7f6ed,#f0f5f2)}
+.equipment-placeholder i{font-size:76px}
+.equipment-content{padding:28px;display:flex;flex-direction:column;flex:1}
+.equipment-content small{font-size:14px;font-weight:600}
+.equipment-content h4{font-size:25px;line-height:1.3;min-height:65px;margin-bottom:14px}
+.equipment-content p{font-size:15px;line-height:1.65}
+.equipment-content .equipment-price{font-size:22px;margin-top:auto;margin-bottom:18px}
+.equipment-content .btn{padding:13px 20px;align-self:flex-start}
+@media(max-width:1199px){.equipment-section{padding:60px 30px}.equipment-photo,.equipment-placeholder{height:240px}.equipment-content{padding:22px}.equipment-content h4{font-size:22px}}
+@media(max-width:767px){.equipment-section{padding:45px 20px}.equipment-heading h2{font-size:30px}.equipment-filters{gap:8px!important;margin-bottom:28px}.equipment-filters .btn{font-size:13px;padding:9px 14px}.equipment-content h4{min-height:0}.equipment-photo,.equipment-placeholder{height:250px}}

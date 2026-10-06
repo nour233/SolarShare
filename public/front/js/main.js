@@ -96,3 +96,29 @@
     
 })(jQuery);
 
+// Filter equipment on the homepage without navigating away.
+document.addEventListener('click', async function (event) {
+    const link = event.target.closest('#equipments .equipment-filters a');
+    if (!link || window.location.pathname !== '/' || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    const section = document.getElementById('equipments');
+    if (section.getAttribute('aria-busy') === 'true') return;
+    section.setAttribute('aria-busy', 'true');
+    section.style.opacity = '0.6';
+    try {
+        const response = await fetch(link.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+        if (!response.ok) throw new Error('Filter unavailable');
+        const html = await response.text();
+        const parsed = new DOMParser().parseFromString(html, 'text/html');
+        const updated = parsed.getElementById('equipments');
+        if (!updated) throw new Error('Missing equipment list');
+        section.replaceWith(updated);
+        updated.querySelectorAll('a').forEach(item => { if (item.textContent === link.textContent) item.focus({preventScroll: true}); });
+    } catch (error) {
+        section.style.opacity = '';
+        section.removeAttribute('aria-busy');
+        let notice = section.querySelector('[role="alert"]');
+        if (!notice) { notice = document.createElement('p'); notice.className = 'text-danger text-center'; notice.setAttribute('role', 'alert'); section.prepend(notice); }
+        notice.textContent = 'Impossible de charger les équipements. Veuillez réessayer.';
+    }
+});

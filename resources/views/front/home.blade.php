@@ -85,7 +85,7 @@
                 <a href="index.html" class="nav-item nav-link active">Home</a>
                 <a href="about.html" class="nav-item nav-link">About</a>
                 <a href="service.html" class="nav-item nav-link">Service</a>
-                <a href="project.html" class="nav-item nav-link">Project</a>
+                <a href="{{ route('equipments.index') }}" class="nav-item nav-link {{ request()->routeIs('equipments.*') ? 'active' : '' }}">Équipements</a>
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
                     <div class="dropdown-menu bg-light m-0">
@@ -218,6 +218,8 @@
     <!-- Feature Start -->
 
 
+    @include('front.partials.equipments')
+
     <!-- About Start -->
     <div class="container-fluid bg-light overflow-hidden my-5 px-lg-0">
         <div class="container about px-lg-0">
@@ -244,96 +246,7 @@
     <!-- About End -->
 
 
-    <!-- Service Start -->
-    <div class="container-xxl py-5">
-        <div class="container">
-            <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                <h6 class="text-primary">Our Services</h6>
-                <h1 class="mb-4">We Are Pioneers In The World Of Renewable Energy</h1>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
-                    <div class="service-item rounded overflow-hidden">
-                        <img class="img-fluid" src="/front/img/img-600x400-1.jpg" alt="">
-                        <div class="position-relative p-4 pt-0">
-                            <div class="service-icon">
-                                <i class="fa fa-solar-panel fa-3x"></i>
-                            </div>
-                            <h4 class="mb-3">Solar Panels</h4>
-                            <p>Stet stet justo dolor sed duo. Ut clita sea sit ipsum diam lorem diam.</p>
-                            <a class="small fw-medium" href="">Read More<i class="fa fa-arrow-right ms-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.3s">
-                    <div class="service-item rounded overflow-hidden">
-                        <img class="img-fluid" src="/front/img/img-600x400-2.jpg" alt="">
-                        <div class="position-relative p-4 pt-0">
-                            <div class="service-icon">
-                                <i class="fa fa-wind fa-3x"></i>
-                            </div>
-                            <h4 class="mb-3">Wind Turbines</h4>
-                            <p>Stet stet justo dolor sed duo. Ut clita sea sit ipsum diam lorem diam.</p>
-                            <a class="small fw-medium" href="">Read More<i class="fa fa-arrow-right ms-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.5s">
-                    <div class="service-item rounded overflow-hidden">
-                        <img class="img-fluid" src="/front/img/img-600x400-3.jpg" alt="">
-                        <div class="position-relative p-4 pt-0">
-                            <div class="service-icon">
-                                <i class="fa fa-lightbulb fa-3x"></i>
-                            </div>
-                            <h4 class="mb-3">Hydropower Plants</h4>
-                            <p>Stet stet justo dolor sed duo. Ut clita sea sit ipsum diam lorem diam.</p>
-                            <a class="small fw-medium" href="">Read More<i class="fa fa-arrow-right ms-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
-                    <div class="service-item rounded overflow-hidden">
-                        <img class="img-fluid" src="/front/img/img-600x400-4.jpg" alt="">
-                        <div class="position-relative p-4 pt-0">
-                            <div class="service-icon">
-                                <i class="fa fa-solar-panel fa-3x"></i>
-                            </div>
-                            <h4 class="mb-3">Solar Panels</h4>
-                            <p>Stet stet justo dolor sed duo. Ut clita sea sit ipsum diam lorem diam.</p>
-                            <a class="small fw-medium" href="">Read More<i class="fa fa-arrow-right ms-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.3s">
-                    <div class="service-item rounded overflow-hidden">
-                        <img class="img-fluid" src="/front/img/img-600x400-5.jpg" alt="">
-                        <div class="position-relative p-4 pt-0">
-                            <div class="service-icon">
-                                <i class="fa fa-wind fa-3x"></i>
-                            </div>
-                            <h4 class="mb-3">Wind Turbines</h4>
-                            <p>Stet stet justo dolor sed duo. Ut clita sea sit ipsum diam lorem diam.</p>
-                            <a class="small fw-medium" href="">Read More<i class="fa fa-arrow-right ms-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.5s">
-                    <div class="service-item rounded overflow-hidden">
-                        <img class="img-fluid" src="/front/img/img-600x400-6.jpg" alt="">
-                        <div class="position-relative p-4 pt-0">
-                            <div class="service-icon">
-                                <i class="fa fa-lightbulb fa-3x"></i>
-                            </div>
-                            <h4 class="mb-3">Hydropower Plants</h4>
-                            <p>Stet stet justo dolor sed duo. Ut clita sea sit ipsum diam lorem diam.</p>
-                            <a class="small fw-medium" href="">Read More<i class="fa fa-arrow-right ms-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Service End -->
+    
 
 
     <!-- Feature Start -->

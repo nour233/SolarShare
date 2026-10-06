@@ -1,39 +1,24 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>SolarShare - Back office</title>
-    <link href="/favicon.ico" rel="icon">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
-    <style>
-        /* Same colors and fonts as the front (public/front/css/style.css). */
-        :root { --primary: #32C36C; --light: #F6F7F8; --dark: #1A2A36; }
-        * { box-sizing: border-box; }
-        body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--light); color: #6c757d; font-family: 'Open Sans', sans-serif; }
-        .back-top { background: var(--dark); padding: 22px 32px; }
-        .back-top span { color: var(--primary); font-family: 'Roboto', sans-serif; font-weight: 700; font-size: 26px; }
-        .back-main { flex: 1; display: grid; place-items: center; padding: 32px 16px; }
-        .back-card { width: 100%; max-width: 540px; background: #fff; border: 1px solid #edf0ed; border-radius: 12px; padding: 40px 32px; text-align: center; box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075); }
-        .back-card h1 { margin: 0 0 12px; color: var(--dark); font-family: 'Roboto', sans-serif; font-weight: 700; font-size: 28px; }
-        .back-card p { margin: 0 0 28px; font-size: 15px; }
-        .back-card button { border: 0; border-radius: 50px; background: var(--primary); color: #fff; padding: 13px 40px; font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; }
-        .back-card button:hover { filter: brightness(.95); }
-    </style>
-</head>
-<body>
-    <header class="back-top"><span>SolarShare</span></header>
-    <main class="back-main">
-        <div class="back-card">
-            <h1>SolarShare - Back office</h1>
-            <p>Bienvenue, {{ auth()->user()->name }}</p>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit">Se déconnecter</button>
-            </form>
-        </div>
-    </main>
-</body>
-</html>
+@extends('layouts.back')
+@section('title','Tableau de bord')
+@section('content')
+<section class="dashboard-hero">
+<img src="{{ asset('front/img/carousel-2.jpg') }}" alt="Installation solaire" class="dashboard-hero-photo">
+<div class="dashboard-hero-content"><span class="hero-tag"><span></span> SOLARSHARE / ESPACE DE GESTION</span><h2>L’énergie circule.<br>Votre communauté grandit.</h2><p>Un seul espace pour organiser les catégories, publier les équipements et faire vivre le partage.</p><a href="{{ route('admin.equipments.create') }}" class="btn hero-cta"><i class="fa fa-plus me-2"></i>Publier un équipement</a></div>
+</section>
+<div class="dashboard-stats">
+<a class="dashboard-stat" href="{{ route('admin.equipments.index') }}"><span class="stat-icon"><i class="fa fa-solar-panel"></i></span><div><span>Équipements au catalogue</span><strong>{{ $equipmentCount }}</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
+<a class="dashboard-stat" href="{{ route('admin.categories.index') }}"><span class="stat-icon amber"><i class="fa fa-layer-group"></i></span><div><span>Catégories d’énergie</span><strong>{{ $categoryCount }}</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
+<a class="dashboard-stat dark" href="{{ route('equipments.index') }}"><span class="stat-icon"><i class="fa fa-globe"></i></span><div><span>Votre vitrine publique</span><strong class="stat-text">Explorer le site</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
+</div>
+<section class="dashboard-inventory">
+<header class="dashboard-section-title"><div><span class="section-kicker">LE CATALOGUE EN UN COUP D’ŒIL</span><h2>Derniers équipements</h2></div><a href="{{ route('admin.equipments.index') }}">Tout gérer <i class="fa fa-arrow-right ms-2"></i></a></header>
+<div class="inventory-grid">
+@forelse($equipments as $equipment)
+<article class="inventory-card"><div class="inventory-media">
+@if(!empty($equipment->photos[0]))<img src="{{ asset($equipment->photos[0]) }}" alt="{{ $equipment->title }}">@else<div class="media-placeholder"><i class="fa {{ $equipment->category->icon }}"></i><span>{{ $equipment->category->name }}</span></div>@endif
+<span class="condition-badge"><span></span>{{ $equipment->condition }}</span><a class="preview-button" href="{{ route('equipments.show',$equipment) }}" aria-label="Voir {{ $equipment->title }}"><i class="fa fa-arrow-up"></i></a>
+</div><div class="inventory-body"><div class="item-meta"><span>{{ $equipment->category->name }}</span><span>#{{ str_pad($equipment->id,3,'0',STR_PAD_LEFT) }}</span></div><h3>{{ $equipment->title }}</h3><div class="equipment-spec"><span><i class="fa fa-bolt me-1"></i>{{ $equipment->power_capacity ?? '—' }} {{ $equipment->power_capacity ? $equipment->power_unit : '' }}</span><span><i class="far fa-user me-1"></i>{{ $equipment->owner->name }}</span></div><div class="price-row"><div><strong>{{ number_format($equipment->price_per_day,2,',',' ') }}</strong><span> / jour</span></div><small>Caution {{ number_format($equipment->deposit,2,',',' ') }}</small></div></div><div class="inventory-actions"><a href="{{ route('admin.equipments.edit',$equipment) }}"><i class="far fa-edit me-2"></i>Modifier l’équipement</a><form method="POST" action="{{ route('admin.equipments.destroy', $equipment) }}" onsubmit="return confirm('Supprimer cet équipement définitivement ?')">@csrf @method('DELETE')<button class="dashboard-delete" type="submit" aria-label="Supprimer {{ $equipment->title }}"><i class="far fa-trash-alt me-1" aria-hidden="true"></i> Supprimer</button></form></div></article>
+@empty<div class="surface"><h3>Votre première publication vous attend.</h3><p>Ajoutez un équipement pour donner vie au catalogue.</p></div>@endforelse
+</div><div class="mt-4">{{ $equipments->links('pagination::bootstrap-5') }}</div>
+</section>
+@endsection

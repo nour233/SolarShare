@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-Route::view('/', 'front.home')->name('home');
+Route::get('/', [\App\Http\Controllers\EquipmentController::class, 'home'])->name('home');
+Route::get('/equipments', [\App\Http\Controllers\EquipmentController::class, 'index'])->name('equipments.index');
+Route::get('/equipments/{equipment}', [\App\Http\Controllers\EquipmentController::class, 'show'])->name('equipments.show');
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 
@@ -17,5 +19,13 @@ Route::post('/register/resend', [RegisterController::class, 'resend'])->middlewa
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::view('/dashboard', 'back.dashboard')->name('admin.dashboard');
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->except('show')->names('admin.categories');
+    Route::resource('equipments', \App\Http\Controllers\Admin\EquipmentController::class)->except('show')->names('admin.equipments')->parameters(['equipments'=>'equipment']);
+    Route::get('/dashboard', function () {
+        return view('back.dashboard', [
+            'equipmentCount' => \App\Models\Equipment::count(),
+            'categoryCount' => \App\Models\Category::count(),
+            'equipments' => \App\Models\Equipment::with(['category', 'owner'])->latest()->paginate(10),
+        ]);
+    })->name('admin.dashboard');
 });

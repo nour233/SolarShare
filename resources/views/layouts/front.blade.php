@@ -103,11 +103,7 @@
             @endauth
         </div>
     </nav>
-    <!-- Navbar End --><main class="container-fluid bg-light py-4">
-<div class="container py-3"><div class="row justify-content-center"><div class="col-xl-5 col-lg-6 col-md-8">
-<div class="bg-white rounded p-4 shadow-sm template-auth">@yield('content')</div>
-</div></div></div>
-</main>
+    <!-- Navbar End --><main>@yield('content')</main>
 @yield('scripts')<!-- Footer Start -->
     <div class="container-fluid bg-dark text-body footer mt-5 pt-5 wow fadeIn" data-wow-delay="0.1s">
         <div class="container py-5">

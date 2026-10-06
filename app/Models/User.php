@@ -51,4 +51,9 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function equipments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Equipment::class, 'owner_id');
+    }
 }
