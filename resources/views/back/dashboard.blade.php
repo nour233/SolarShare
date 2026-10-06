@@ -10,6 +10,7 @@
 <a class="dashboard-stat" href="{{ route('admin.categories.index') }}"><span class="stat-icon amber"><i class="fa fa-layer-group"></i></span><div><span>Catégories d'énergie</span><strong>{{ $categoryCount }}</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
 <a class="dashboard-stat" href="{{ route('admin.rentals.index') }}"><span class="stat-icon"><i class="fa fa-calendar-alt"></i></span><div><span>Locations totales</span><strong>{{ $rentalCount }}</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
 <a class="dashboard-stat" href="{{ route('admin.rentals.index', ['status'=>'pending']) }}"><span class="stat-icon amber"><i class="fa fa-clock"></i></span><div><span>En attente de validation</span><strong>{{ $pendingCount }}</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
+<a class="dashboard-stat" href="{{ route('admin.reclamations.index') }}"><span class="stat-icon amber"><i class="fa fa-comments"></i></span><div><span>Gestion des réclamations</span><strong class="stat-text">Consulter</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
 <a class="dashboard-stat dark" href="{{ route('equipments.index') }}"><span class="stat-icon"><i class="fa fa-globe"></i></span><div><span>Votre vitrine publique</span><strong class="stat-text">Explorer le site</strong></div><i class="fa fa-arrow-right stat-arrow"></i></a>
 </div>
 <section class="dashboard-inventory">

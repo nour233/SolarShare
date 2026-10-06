@@ -66,4 +66,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rental::class, 'renter_id');
     }
+
+    public function reclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reclamation::class);
+    }
 }

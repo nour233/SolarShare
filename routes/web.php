@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RentalController;
+use App\Http\Controllers\ReclamationController;
 
 Route::get('/', [\App\Http\Controllers\EquipmentController::class, 'home'])->name('home');
 Route::get('/equipments', [\App\Http\Controllers\EquipmentController::class, 'index'])->name('equipments.index');
@@ -21,6 +22,13 @@ Route::post('/register/resend', [RegisterController::class, 'resend'])->middlewa
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 // Maintenance et incidents: front office (logged-in users).
+Route::middleware('auth')->group(function () {
+    Route::get('/reclamations', [ReclamationController::class, 'index'])->name('reclamations.index');
+    Route::get('/reclamations/create', [ReclamationController::class, 'create'])->name('reclamations.create');
+    Route::post('/reclamations', [ReclamationController::class, 'store'])->middleware('throttle:10,1')->name('reclamations.store');
+    Route::get('/reclamations/{reclamation}', [ReclamationController::class, 'show'])->name('reclamations.show');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/equipments/{equipment}/incidents/create', [\App\Http\Controllers\IncidentController::class, 'create'])->name('incidents.create');
     Route::post('/equipments/{equipment}/incidents', [\App\Http\Controllers\IncidentController::class, 'store'])->middleware('throttle:10,1')->name('incidents.store');
@@ -68,6 +76,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('maintenances', \App\Http\Controllers\Admin\MaintenanceController::class)->except('show')->names('admin.maintenances');
     Route::resource('incidents', \App\Http\Controllers\Admin\IncidentController::class)->names('admin.incidents');
     Route::patch('/incidents/{incident}/status', [\App\Http\Controllers\Admin\IncidentController::class, 'updateStatus'])->name('admin.incidents.status');
+    Route::get('/reclamations', [\App\Http\Controllers\Admin\ReclamationController::class, 'index'])->name('admin.reclamations.index');
+    Route::get('/reclamations/{reclamation}', [\App\Http\Controllers\Admin\ReclamationController::class, 'show'])->name('admin.reclamations.show');
+    Route::patch('/reclamations/{reclamation}/status', [\App\Http\Controllers\Admin\ReclamationController::class, 'updateStatus'])->name('admin.reclamations.status');
+    Route::delete('/reclamations/{reclamation}', [\App\Http\Controllers\Admin\ReclamationController::class, 'destroy'])->name('admin.reclamations.destroy');
 
     Route::get('/dashboard', function () {
         return view('back.dashboard', [

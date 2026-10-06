@@ -78,6 +78,7 @@
                 @endguest
                 @auth
                 <a href="{{ route('rentals.index') }}" class="nav-item nav-link {{ request()->routeIs('rentals.*') ? 'active' : '' }}">Mes réservations</a>
+                <a href="{{ route('reclamations.index') }}" class="nav-item nav-link {{ request()->routeIs('reclamations.*') ? 'active' : '' }}">Réclamations</a>
                 @php($unreadIncidents = \App\Models\IncidentMessage::unreadCountFor(auth()->user()))
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.incidents.index') : route('incidents.index') }}" class="nav-item nav-link {{ request()->routeIs('incidents.*') ? 'active' : '' }}">{{ auth()->user()->isAdmin() ? 'Incidents' : 'Mes signalements' }}<span class="unread-badge" data-unread-badge title="Messages non lus" @if(!$unreadIncidents) hidden @endif>{{ $unreadIncidents }}</span></a>
                 <span class="nav-item nav-link">{{ auth()->user()->name }}</span>
