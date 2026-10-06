@@ -11,4 +11,20 @@ class Equipment extends Model
     public function owner(): BelongsTo { return $this->belongsTo(User::class, 'owner_id'); }
     public function maintenances(): HasMany { return $this->hasMany(Maintenance::class); }
     public function incidents(): HasMany { return $this->hasMany(Incident::class); }
+
+    public function rentals(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Rental::class);
+    }
+
+    /**
+     * Return date ranges that are already booked (active statuses only).
+     * Returns a collection of objects with start_date and end_date.
+     */
+    public function bookedRanges(): \Illuminate\Support\Collection
+    {
+        return $this->rentals()
+            ->whereNotIn('status', ['cancelled', 'returned'])
+            ->get(['start_date', 'end_date']);
+    }
 }
