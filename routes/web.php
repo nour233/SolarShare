@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\RentalController;
+
 Route::get('/', [\App\Http\Controllers\EquipmentController::class, 'home'])->name('home');
 Route::get('/equipments', [\App\Http\Controllers\EquipmentController::class, 'index'])->name('equipments.index');
 Route::get('/equipments/{equipment}', [\App\Http\Controllers\EquipmentController::class, 'show'])->name('equipments.show');
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
@@ -18,14 +20,46 @@ Route::post('/register/verify', [RegisterController::class, 'verify'])->middlewa
 Route::post('/register/resend', [RegisterController::class, 'resend'])->middleware('throttle:3,1')->name('register.resend');
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
+// ── Front-office rentals (auth required) ─────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/rentals', [RentalController::class, 'index'])->name('rentals.index');
+    Route::get('/equipments/{equipment}/rent', [RentalController::class, 'create'])->name('rentals.create');
+    Route::post('/equipments/{equipment}/rent', [RentalController::class, 'store'])->middleware('throttle:10,1')->name('rentals.store');
+    Route::get('/rentals/{rental}', [RentalController::class, 'show'])->name('rentals.show');
+    Route::patch('/rentals/{rental}/cancel', [RentalController::class, 'cancel'])->name('rentals.cancel');
+});
+
+// ── Back-office admin ─────────────────────────────────────────────────────────
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->except('show')->names('admin.categories');
-    Route::resource('equipments', \App\Http\Controllers\Admin\EquipmentController::class)->except('show')->names('admin.equipments')->parameters(['equipments'=>'equipment']);
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)
+        ->except('show')->names('admin.categories');
+
+    Route::resource('equipments', \App\Http\Controllers\Admin\EquipmentController::class)
+        ->except('show')->names('admin.equipments')->parameters(['equipments' => 'equipment']);
+
+    // Rentals resource (full CRUD)
+    Route::resource('rentals', \App\Http\Controllers\Admin\RentalController::class)
+        ->names('admin.rentals');
+
+    // Extra rental actions
+    Route::patch('rentals/{rental}/status', [\App\Http\Controllers\Admin\RentalController::class, 'updateStatus'])
+        ->name('admin.rentals.status');
+
+    // Payments nested under a rental
+    Route::post('rentals/{rental}/payments', [\App\Http\Controllers\Admin\RentalController::class, 'storePayment'])
+        ->name('admin.rentals.payments.store');
+    Route::patch('rentals/{rental}/payments/{payment}', [\App\Http\Controllers\Admin\RentalController::class, 'updatePayment'])
+        ->name('admin.rentals.payments.update');
+    Route::delete('rentals/{rental}/payments/{payment}', [\App\Http\Controllers\Admin\RentalController::class, 'destroyPayment'])
+        ->name('admin.rentals.payments.destroy');
+
     Route::get('/dashboard', function () {
         return view('back.dashboard', [
             'equipmentCount' => \App\Models\Equipment::count(),
-            'categoryCount' => \App\Models\Category::count(),
-            'equipments' => \App\Models\Equipment::with(['category', 'owner'])->latest()->paginate(10),
+            'categoryCount'  => \App\Models\Category::count(),
+            'rentalCount'    => \App\Models\Rental::count(),
+            'pendingCount'   => \App\Models\Rental::where('status', 'pending')->count(),
+            'equipments'     => \App\Models\Equipment::with(['category', 'owner'])->latest()->paginate(10),
         ]);
     })->name('admin.dashboard');
 });
