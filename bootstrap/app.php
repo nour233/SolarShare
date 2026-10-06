@@ -14,5 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function ($response) {
+            if ($response->getStatusCode() === 419 && request()->is('register', 'register/*')) {
+                $target = session()->has('registration') ? 'register.verify' : 'register';
+
+                return redirect()->route($target)->withErrors([
+                    'session' => 'Votre session a expiré. La page a été actualisée : veuillez réessayer.',
+                ]);
+            }
+
+            return $response;
+        });
     })->create();
