@@ -16,5 +16,6 @@
     <i class="fa fa-sign-in-alt me-2"></i>Connectez-vous pour réserver
 </a>
 @endauth
+<div class="border-top pt-4 mt-2">@auth<a href="{{ route('incidents.create', $equipment) }}" class="btn btn-outline-primary rounded-pill px-4"><i class="fa fa-exclamation-triangle me-2" aria-hidden="true"></i>Signaler un problème</a>@else<p class="mb-0 text-muted">Un problème avec cet équipement ? <a href="{{ route('login') }}">Connectez-vous</a> pour le signaler.</p>@endauth</div>
 </div></div></div>
 @endsection

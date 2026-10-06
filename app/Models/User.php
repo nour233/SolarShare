@@ -57,6 +57,11 @@ class User extends Authenticatable
         return $this->hasMany(Equipment::class, 'owner_id');
     }
 
+    public function incidents(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Incident::class);
+    }
+
     public function rentals(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Rental::class, 'renter_id');
