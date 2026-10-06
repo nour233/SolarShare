@@ -85,8 +85,22 @@
                     </div>
                 </div>
                 <a href="contact.html" class="nav-item nav-link">Contact</a>
+                @guest
+                <a href="{{ route('login') }}" class="nav-item nav-link">Login</a>
+                @endguest
+                @auth
+                <span class="nav-item nav-link">{{ auth()->user()->name }}</span>
+                @endauth
             </div>
+            @guest
             <a href="{{ route('register') }}" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Register<i class="fa fa-arrow-right ms-3"></i></a>
+            @endguest
+            @auth
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-primary rounded-0 py-4 px-lg-5">Logout<i class="fa fa-sign-out-alt ms-3"></i></button>
+            </form>
+            @endauth
         </div>
     </nav>
     <!-- Navbar End --><main class="container-fluid bg-light py-4">
