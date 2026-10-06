@@ -15,11 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // "role" is not fillable, so it is set with forceFill.
+        $admin = User::firstOrNew(['email' => 'admin@solarshare.test']);
+        $admin->forceFill([
+            'name' => 'Admin',
+            'password' => 'password',
+            'role' => 'admin',
+            'email_verified_at' => now(),
+        ])->save();
     }
 }
