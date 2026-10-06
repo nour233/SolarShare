@@ -90,6 +90,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/reclamations/{reclamation}', [\App\Http\Controllers\Admin\ReclamationController::class, 'show'])->name('admin.reclamations.show');
     Route::patch('/reclamations/{reclamation}/status', [\App\Http\Controllers\Admin\ReclamationController::class, 'updateStatus'])->name('admin.reclamations.status');
     Route::delete('/reclamations/{reclamation}', [\App\Http\Controllers\Admin\ReclamationController::class, 'destroy'])->name('admin.reclamations.destroy');
+    Route::get('/reputation', [\App\Http\Controllers\Admin\ReputationController::class, 'index'])->name('admin.reputation.index');
 
     Route::get('/dashboard', function () {
         return view('back.dashboard', [
