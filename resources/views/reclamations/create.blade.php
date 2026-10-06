@@ -7,6 +7,7 @@
         @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
         <form method="POST" action="{{ route('reclamations.store') }}">@csrf
             <div class="mb-4"><label for="type" class="form-label fw-bold">Service concerné</label><select id="type" name="type" class="form-select" required><option value="">Sélectionnez un service</option>@foreach(\App\Models\Reclamation::TYPES as $value => $label)<option value="{{ $value }}" @selected(old('type') === $value)>{{ $label }}</option>@endforeach</select></div>
+            <div class="mb-4" id="review-author-field" @if(old('type') !== 'avis') hidden @endif><label for="review_author_name" class="form-label fw-bold">Nom du client concerné par l’avis</label><input id="review_author_name" name="review_author_name" value="{{ old('review_author_name') }}" class="form-control" maxlength="255" placeholder="Saisissez le nom affiché sur l’avis" @if(old('type') === 'avis') required @endif><small class="text-muted">Ce nom nous aide à retrouver l’avis concerné.</small></div>
             <div class="mb-4"><label for="subject" class="form-label fw-bold">Objet de la réclamation</label><input id="subject" name="subject" value="{{ old('subject') }}" class="form-control" maxlength="255" required placeholder="Ex. : Problème lors de ma location"></div>
             <div class="mb-4"><label for="reclamation_date" class="form-label fw-bold">Date du problème</label><input id="reclamation_date" type="date" name="reclamation_date" value="{{ old('reclamation_date', today()->format('Y-m-d')) }}" max="{{ today()->format('Y-m-d') }}" class="form-control" required></div>
             <div class="mb-4"><label for="description" class="form-label fw-bold">Description</label><textarea id="description" name="description" rows="7" minlength="10" maxlength="5000" class="form-control" required placeholder="Expliquez votre réclamation avec le plus de détails possible...">{{ old('description') }}</textarea><small class="text-muted">Entre 10 et 5 000 caractères.</small></div>
@@ -14,4 +15,14 @@
         </form>
     </div>
 </div></div></div>
+<script>
+document.getElementById('type').addEventListener('change', function () {
+    const field = document.getElementById('review-author-field');
+    const input = document.getElementById('review_author_name');
+    const isReview = this.value === 'avis';
+    field.hidden = !isReview;
+    input.required = isReview;
+    if (!isReview) input.value = '';
+});
+</script>
 @endsection

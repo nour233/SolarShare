@@ -39,6 +39,7 @@ class ReclamationController extends Controller
     {
         return [
             'type' => ['required', Rule::in(array_keys(Reclamation::TYPES))],
+            'review_author_name' => ['required_if:type,avis', 'nullable', 'string', 'max:255'],
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'min:10', 'max:5000'],
             'reclamation_date' => ['required', 'date', 'before_or_equal:today'],

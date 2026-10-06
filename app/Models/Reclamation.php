@@ -12,6 +12,7 @@ class Reclamation extends Model
         'location' => 'Location',
         'maintenance' => 'Maintenance',
         'livraison' => 'Livraison',
+        'avis' => 'Avis',
     ];
 
     public const STATUSES = [
@@ -21,7 +22,7 @@ class Reclamation extends Model
         'rejetee' => 'Rejetée',
     ];
 
-    protected $fillable = ['user_id', 'type', 'subject', 'description', 'reclamation_date', 'status', 'admin_response'];
+    protected $fillable = ['user_id', 'type', 'review_author_name', 'subject', 'description', 'reclamation_date', 'status', 'admin_response'];
 
     protected $casts = ['reclamation_date' => 'date'];
 

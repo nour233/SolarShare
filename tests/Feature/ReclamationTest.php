@@ -66,4 +66,30 @@ class ReclamationTest extends TestCase
             ->assertOk()
             ->assertSee('Votre demande a été traitée par notre équipe.');
     }
+
+    public function test_review_reclamation_requires_and_stores_review_author_name(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post('/reclamations', [
+            'type' => 'avis',
+            'subject' => 'Avis inapproprié',
+            'description' => 'Cet avis ne respecte pas les règles de notre communauté.',
+            'reclamation_date' => today()->format('Y-m-d'),
+        ])->assertSessionHasErrors('review_author_name');
+
+        $this->actingAs($user)->post('/reclamations', [
+            'type' => 'avis',
+            'review_author_name' => 'Client Solar',
+            'subject' => 'Avis inapproprié',
+            'description' => 'Cet avis ne respecte pas les règles de notre communauté.',
+            'reclamation_date' => today()->format('Y-m-d'),
+        ])->assertRedirect('/reclamations');
+
+        $this->assertDatabaseHas('reclamations', [
+            'user_id' => $user->id,
+            'type' => 'avis',
+            'review_author_name' => 'Client Solar',
+        ]);
+    }
 }
