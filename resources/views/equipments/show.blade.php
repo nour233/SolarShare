@@ -7,5 +7,6 @@
 @empty<div class="bg-light p-5 text-center"><i class="fa {{ $equipment->category->icon }} fa-5x text-primary"></i></div>@endforelse
 </div><div class="col-lg-6"><h6 class="text-primary">{{ $equipment->category->name }}</h6><h1>{{ $equipment->title }}</h1><p style="white-space:pre-line">{{ $equipment->description }}</p>
 <dl class="row"><dt class="col-5">Puissance / capacité</dt><dd class="col-7">{{ $equipment->power_capacity ?? '—' }} {{ $equipment->power_capacity ? $equipment->power_unit : '' }}</dd><dt class="col-5">État</dt><dd class="col-7">{{ $equipment->condition }}</dd><dt class="col-5">Prix par jour</dt><dd class="col-7">{{ number_format($equipment->price_per_day,2,',',' ') }}</dd><dt class="col-5">Caution</dt><dd class="col-7">{{ number_format($equipment->deposit,2,',',' ') }}</dd><dt class="col-5">Propriétaire</dt><dd class="col-7">{{ $equipment->owner->name }}</dd></dl>
+<div class="border-top pt-4 mt-2">@auth<a href="{{ route('incidents.create', $equipment) }}" class="btn btn-outline-primary rounded-pill px-4"><i class="fa fa-exclamation-triangle me-2" aria-hidden="true"></i>Signaler un problème</a>@else<p class="mb-0 text-muted">Un problème avec cet équipement ? <a href="{{ route('login') }}">Connectez-vous</a> pour le signaler.</p>@endauth</div>
 </div></div></div>
 @endsection
