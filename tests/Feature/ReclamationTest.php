@@ -53,6 +53,17 @@ class ReclamationTest extends TestCase
         $this->actingAs($admin)->get('/admin/reclamations')->assertOk()->assertSee('Maintenance non effectuée');
         $this->actingAs($admin)->patch('/admin/reclamations/'.$reclamation->id.'/status', ['status' => 'en_cours'])
             ->assertRedirect();
-        $this->assertDatabaseHas('reclamations', ['id' => $reclamation->id, 'status' => 'en_cours']);
+        $this->actingAs($admin)->patch('/admin/reclamations/'.$reclamation->id.'/status', [
+            'status' => 'resolue',
+            'admin_response' => 'Votre demande a été traitée par notre équipe.',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('reclamations', [
+            'id' => $reclamation->id,
+            'status' => 'resolue',
+            'admin_response' => 'Votre demande a été traitée par notre équipe.',
+        ]);
+        $this->actingAs($user)->get('/reclamations/'.$reclamation->id)
+            ->assertOk()
+            ->assertSee('Votre demande a été traitée par notre équipe.');
     }
 }

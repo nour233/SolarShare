@@ -31,6 +31,7 @@ class ReclamationController extends Controller
     {
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Reclamation::STATUSES))],
+            'admin_response' => ['nullable', 'string', 'max:5000'],
         ]);
         $reclamation->update($data);
 

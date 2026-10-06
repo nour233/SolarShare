@@ -19,7 +19,7 @@
                     <td class="fw-bold">{{ $reclamation->subject }}</td>
                     <td>{{ $reclamation->typeLabel() }}</td>
                     <td>{{ $reclamation->reclamation_date->format('d/m/Y') }}</td>
-                    <td><span class="badge text-bg-light">{{ $reclamation->statusLabel() }}</span></td>
+                    <td><span class="reclamation-status {{ $reclamation->statusClass() }}">{{ $reclamation->statusLabel() }}</span></td>
                     <td class="text-end"><a href="{{ route('reclamations.show', $reclamation) }}" class="btn btn-outline-primary btn-sm rounded-pill">Consulter</a></td>
                 </tr>@endforeach</tbody>
             </table></div>

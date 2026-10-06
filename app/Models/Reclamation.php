@@ -21,7 +21,7 @@ class Reclamation extends Model
         'rejetee' => 'Rejetée',
     ];
 
-    protected $fillable = ['user_id', 'type', 'subject', 'description', 'reclamation_date', 'status'];
+    protected $fillable = ['user_id', 'type', 'subject', 'description', 'reclamation_date', 'status', 'admin_response'];
 
     protected $casts = ['reclamation_date' => 'date'];
 
@@ -39,6 +39,16 @@ class Reclamation extends Model
 
     public function statusLabel(): string
     {
-        return self::STATUSES[$this->status] ?? $this->status;
+        return self::STATUSES[$this->status] ?? self::STATUSES['ouverte'];
+    }
+
+    public function statusClass(): string
+    {
+        return match ($this->status) {
+            'en_cours' => 'reclamation-status-in-progress',
+            'resolue' => 'reclamation-status-resolved',
+            'rejetee' => 'reclamation-status-rejected',
+            default => 'reclamation-status-open',
+        };
     }
 }

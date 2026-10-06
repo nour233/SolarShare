@@ -31,6 +31,13 @@
     <!-- Template Stylesheet -->
     <link href="/front/css/style.css" rel="stylesheet">
 <link href="{{ asset('front/css/auth.css') }}" rel="stylesheet"></head><body><!-- Topbar Start -->
+<style>
+.reclamation-status { display: inline-block; padding: .35rem .65rem; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+.reclamation-status-open { color: #856404; background: #fff3cd; }
+.reclamation-status-in-progress { color: #055160; background: #cff4fc; }
+.reclamation-status-resolved { color: #0f5132; background: #d1e7dd; }
+.reclamation-status-rejected { color: #842029; background: #f8d7da; }
+</style><!-- Topbar Start -->
     <div class="container-fluid bg-dark p-0">
         <div class="row gx-0 d-none d-lg-flex">
             <div class="col-lg-7 px-5 text-start">
