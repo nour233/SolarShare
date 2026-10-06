@@ -29,10 +29,11 @@
             <span class="text-muted small">INTERACTION CLIENT</span><h3>Clients à suivre</h3>
             <p class="text-muted small">Les clients ayant publié le plus d'avis et ceux dont les avis sont régulièrement négatifs.</p>
             @forelse($clients->take(6) as $client)
-                <div class="d-flex justify-content-between align-items-center border-bottom py-2"><div><strong>{{ $client['name'] }}</strong><div class="small text-muted">{{ $client['count'] }} avis · moyenne {{ number_format($client['average'], 1, ',', ' ') }}/5</div></div>@if($client['negative'] > 0)<span class="badge bg-warning text-dark">{{ $client['negative'] }} négatif{{ $client['negative'] > 1 ? 's' : '' }}</span>@else<span class="badge bg-success">Satisfait</span>@endif</div>
+                <a href="{{ route('admin.reputation.client', $client['user_id']) }}" class="d-flex justify-content-between align-items-center border-bottom py-2 text-decoration-none text-reset"><div><strong>{{ $client['name'] }}</strong><div class="small text-muted">{{ $client['count'] }} avis · moyenne {{ number_format($client['average'], 1, ',', ' ') }}/5</div></div>@if($client['negative'] > 0)<span class="badge bg-warning text-dark">{{ $client['negative'] }} négatif{{ $client['negative'] > 1 ? 's' : '' }}</span>@else<span class="badge bg-success">Satisfait</span>@endif</a>
             @empty
                 <p class="text-muted mb-0">Aucun avis à analyser pour le moment.</p>
             @endforelse
+            <a href="{{ route('admin.reputation.clients') }}" class="btn btn-outline-primary btn-sm mt-3">Voir tous les clients</a>
         </div>
     </div>
 </div>
@@ -41,7 +42,7 @@
     <span class="text-muted small">DERNIERS AVIS</span><h3>Retours récents</h3>
     <div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Client</th><th>Service</th><th>Avis</th><th>Note</th><th>Date</th></tr></thead><tbody>
         @forelse($recentReviews as $review)
-            <tr><td>{{ $review->user?->name ?? 'Client supprimé' }}</td><td>{{ $review->serviceLabel() }}</td><td><strong>{{ $review->title }}</strong><div class="small text-muted">{{ \Illuminate\Support\Str::limit($review->comment, 90) }}</div></td><td class="{{ $review->rating <= 2 ? 'text-danger' : ($review->rating >= 4 ? 'text-success' : 'text-warning') }}">{{ $review->rating }}/5</td><td>{{ $review->created_at->format('d/m/Y') }}</td></tr>
+            <tr><td><a href="{{ route('admin.reputation.client', $review->user_id) }}">{{ $review->user?->name ?? 'Client supprimé' }}</a></td><td>{{ $review->serviceLabel() }}</td><td><strong>{{ $review->title }}</strong><div class="small text-muted">{{ \Illuminate\Support\Str::limit($review->comment, 90) }}</div></td><td class="{{ $review->rating <= 2 ? 'text-danger' : ($review->rating >= 4 ? 'text-success' : 'text-warning') }}">{{ $review->rating }}/5</td><td>{{ $review->created_at->format('d/m/Y') }}</td></tr>
         @empty
             <tr><td colspan="5" class="text-center text-muted py-4">Aucun avis à analyser pour le moment.</td></tr>
         @endforelse

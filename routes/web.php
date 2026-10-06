@@ -91,6 +91,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::patch('/reclamations/{reclamation}/status', [\App\Http\Controllers\Admin\ReclamationController::class, 'updateStatus'])->name('admin.reclamations.status');
     Route::delete('/reclamations/{reclamation}', [\App\Http\Controllers\Admin\ReclamationController::class, 'destroy'])->name('admin.reclamations.destroy');
     Route::get('/reputation', [\App\Http\Controllers\Admin\ReputationController::class, 'index'])->name('admin.reputation.index');
+    Route::get('/reputation/clients', [\App\Http\Controllers\Admin\ReputationController::class, 'clients'])->name('admin.reputation.clients');
+    Route::get('/reputation/clients/{user}', [\App\Http\Controllers\Admin\ReputationController::class, 'client'])->name('admin.reputation.client');
+    Route::delete('/reputation/reviews/{review}', [\App\Http\Controllers\Admin\ReputationController::class, 'destroyReview'])->name('admin.reputation.reviews.destroy');
 
     Route::get('/dashboard', function () {
         return view('back.dashboard', [
