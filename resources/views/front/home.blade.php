@@ -84,6 +84,7 @@
             <div class="navbar-nav ms-auto p-4 p-lg-0">
                 <a href="index.html" class="nav-item nav-link active">Home</a>
                 <a href="{{ route('equipments.index') }}" class="nav-item nav-link {{ request()->routeIs('equipments.*') ? 'active' : '' }}">Équipements</a>
+                <a href="{{ route('reviews.index') }}" class="nav-item nav-link {{ request()->routeIs('reviews.*') ? 'active' : '' }}">Avis</a>
                 <a href="contact.html" class="nav-item nav-link">Contact</a>
                 @guest
                 <a href="{{ route('login') }}" class="nav-item nav-link">Login</a>
@@ -526,57 +527,48 @@
     <!-- Team End -->
 
 
-    <!-- Testimonial Start -->
+    <!-- Reviews Start -->
     <div class="container-xxl py-5">
         <div class="container">
             <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                <h6 class="text-primary">Testimonial</h6>
-                <h1 class="mb-4">What Our Clients Say!</h1>
+                <h6 class="text-primary">Avis</h6>
+                <h1 class="mb-4">Ce que pensent nos clients</h1>
             </div>
             <div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
+                @forelse($reviews as $review)
                 <div class="testimonial-item text-center">
                     <div class="testimonial-img position-relative">
-                        <img class="img-fluid rounded-circle mx-auto mb-5" src="/front/img/testimonial-1.jpg">
+                        <div class="img-fluid rounded-circle mx-auto mb-5 d-flex align-items-center justify-content-center bg-primary text-white" style="width: 90px; height: 90px; font-size: 2rem;">
+                            {{ strtoupper(substr($review->user->name, 0, 1)) }}
+                        </div>
                         <div class="btn-square bg-primary rounded-circle">
                             <i class="fa fa-quote-left text-white"></i>
                         </div>
                     </div>
                     <div class="testimonial-text text-center rounded p-4">
-                        <p>Clita clita tempor justo dolor ipsum amet kasd amet duo justo duo duo labore sed sed. Magna ut diam sit et amet stet eos sed clita erat magna elitr erat sit sit erat at rebum justo sea clita.</p>
-                        <h5 class="mb-1">Client Name</h5>
-                        <span class="fst-italic">Profession</span>
-                    </div>
-                </div>
-                <div class="testimonial-item text-center">
-                    <div class="testimonial-img position-relative">
-                        <img class="img-fluid rounded-circle mx-auto mb-5" src="/front/img/testimonial-2.jpg">
-                        <div class="btn-square bg-primary rounded-circle">
-                            <i class="fa fa-quote-left text-white"></i>
+                        <div class="text-warning mb-2" aria-label="{{ $review->rating }} étoiles">
+                            @for($star = 1; $star <= 5; $star++)
+                                <i class="{{ $star <= $review->rating ? 'fas' : 'far' }} fa-star"></i>
+                            @endfor
                         </div>
-                    </div>
-                    <div class="testimonial-text text-center rounded p-4">
-                        <p>Clita clita tempor justo dolor ipsum amet kasd amet duo justo duo duo labore sed sed. Magna ut diam sit et amet stet eos sed clita erat magna elitr erat sit sit erat at rebum justo sea clita.</p>
-                        <h5 class="mb-1">Client Name</h5>
-                        <span class="fst-italic">Profession</span>
+                        <h5 class="mb-1">{{ $review->title }}</h5>
+                        <p>{{ $review->comment }}</p>
+                        <span class="fst-italic">{{ $review->user->name }}</span>
                     </div>
                 </div>
+                @empty
                 <div class="testimonial-item text-center">
-                    <div class="testimonial-img position-relative">
-                        <img class="img-fluid rounded-circle mx-auto mb-5" src="/front/img/testimonial-3.jpg">
-                        <div class="btn-square bg-primary rounded-circle">
-                            <i class="fa fa-quote-left text-white"></i>
-                        </div>
-                    </div>
                     <div class="testimonial-text text-center rounded p-4">
-                        <p>Clita clita tempor justo dolor ipsum amet kasd amet duo justo duo duo labore sed sed. Magna ut diam sit et amet stet eos sed clita erat magna elitr erat sit sit erat at rebum justo sea clita.</p>
-                        <h5 class="mb-1">Client Name</h5>
-                        <span class="fst-italic">Profession</span>
+                        <i class="fa fa-comments fa-2x text-primary mb-3"></i>
+                        <p>Les premiers avis de nos clients apparaîtront ici.</p>
+                        <a href="{{ route('reviews.index') }}" class="btn btn-primary rounded-pill px-4">Voir les avis</a>
                     </div>
                 </div>
+                @endforelse
             </div>
         </div>
     </div>
-    <!-- Testimonial End -->
+    <!-- Reviews End -->
 
 
     <!-- Footer Start -->

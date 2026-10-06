@@ -5,10 +5,12 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RentalController;
 use App\Http\Controllers\ReclamationController;
+use App\Http\Controllers\ReviewController;
 
 Route::get('/', [\App\Http\Controllers\EquipmentController::class, 'home'])->name('home');
 Route::get('/equipments', [\App\Http\Controllers\EquipmentController::class, 'index'])->name('equipments.index');
 Route::get('/equipments/{equipment}', [\App\Http\Controllers\EquipmentController::class, 'show'])->name('equipments.show');
+Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
@@ -22,6 +24,14 @@ Route::post('/register/resend', [RegisterController::class, 'resend'])->middlewa
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 // Maintenance et incidents: front office (logged-in users).
+Route::middleware('auth')->group(function () {
+    Route::get('/reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/reviews', [ReviewController::class, 'store'])->middleware('throttle:5,1')->name('reviews.store');
+    Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])->middleware('throttle:5,1')->name('reviews.update');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/reclamations', [ReclamationController::class, 'index'])->name('reclamations.index');
     Route::get('/reclamations/create', [ReclamationController::class, 'create'])->name('reclamations.create');

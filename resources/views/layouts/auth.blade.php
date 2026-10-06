@@ -72,6 +72,7 @@
             <div class="navbar-nav ms-auto p-4 p-lg-0">
                 <a href="/" class="nav-item nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                 <a href="{{ route('equipments.index') }}" class="nav-item nav-link {{ request()->routeIs('equipments.*') ? 'active' : '' }}">Équipements</a>
+                <a href="{{ route('reviews.index') }}" class="nav-item nav-link {{ request()->routeIs('reviews.*') ? 'active' : '' }}">Avis</a>
                 <a href="contact.html" class="nav-item nav-link">Contact</a>
                 @guest
                 <a href="{{ route('login') }}" class="nav-item nav-link">Login</a>
