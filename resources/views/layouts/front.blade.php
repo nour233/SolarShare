@@ -89,6 +89,7 @@
                 <a href="{{ route('login') }}" class="nav-item nav-link">Login</a>
                 @endguest
                 @auth
+                <a href="{{ route('rentals.index') }}" class="nav-item nav-link {{ request()->routeIs('rentals.*') ? 'active' : '' }}">Mes réservations</a>
                 <span class="nav-item nav-link">{{ auth()->user()->name }}</span>
                 @endauth
             </div>
