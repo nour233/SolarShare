@@ -363,6 +363,11 @@
     transition-delay: .3s;
 }
 
+.review-card {
+    background: var(--light);
+    box-shadow: 0 4px 18px rgba(26, 42, 54, .06);
+}
+
 .portfolio-container {
     min-height: 920px;
 }

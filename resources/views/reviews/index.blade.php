@@ -15,13 +15,17 @@
     @if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
     <div class="row g-4">
         @forelse($reviews as $review)
-            <div class="col-md-6 col-lg-4"><article class="surface h-100 p-4">
+            <div class="col-md-6 col-lg-4"><article class="surface review-card h-100 p-4">
                 <div class="text-warning mb-2" aria-label="{{ $review->rating }} étoiles">@for($star = 1; $star <= 5; $star++)<i class="{{ $star <= $review->rating ? 'fas' : 'far' }} fa-star"></i>@endfor</div>
+                <div class="small text-primary mb-2">{{ $review->serviceLabel() }}</div>
                 <h4>{{ $review->title }}</h4><p class="text-muted" style="white-space:pre-line">{{ $review->comment }}</p>
                 <div class="small text-muted mt-auto">Par {{ $review->user->name }} · {{ $review->created_at->format('d/m/Y') }}</div>
                 @auth
                     @if($review->canBeModifiedBy(auth()->user()))
-                        <div class="d-flex gap-2 mt-3"><a href="{{ route('reviews.edit', $review) }}" class="btn btn-outline-primary btn-sm">Modifier</a><form method="POST" action="{{ route('reviews.destroy', $review) }}">@csrf @method('DELETE')<button class="btn btn-outline-danger btn-sm" type="submit">Supprimer</button></form></div>
+                        <a href="{{ route('reviews.edit', $review) }}" class="btn btn-outline-primary btn-sm">Modifier</a>
+                    @endif
+                    @if($review->canBeDeletedBy(auth()->user()))
+                        <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $review) }}" onsubmit="return confirm('Supprimer cet avis définitivement ?')">@csrf @method('DELETE')<button class="btn btn-outline-danger btn-sm" type="submit" aria-label="Supprimer l’avis" title="Supprimer l’avis"><i class="far fa-trash-alt" aria-hidden="true"></i></button></form>
                     @endif
                 @endauth
             </article></div>

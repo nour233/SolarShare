@@ -44,7 +44,7 @@ class ReviewController extends Controller
 
     public function destroy(Request $request, Review $review)
     {
-        $this->authorizeOwner($request, $review);
+        abort_unless($review->canBeDeletedBy($request->user()), 403);
         $review->delete();
 
         return redirect()->route('reviews.index')->with('status', 'Votre avis a été supprimé.');
@@ -59,6 +59,7 @@ class ReviewController extends Controller
     {
         return $request->validate([
             'rating' => ['required', 'integer', 'between:1,5'],
+            'service' => ['required', Rule::in(array_keys(Review::SERVICES))],
             'title' => ['required', 'string', 'max:120'],
             'comment' => ['required', 'string', 'min:10', 'max:2000'],
         ]);

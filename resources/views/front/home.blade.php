@@ -552,6 +552,7 @@
                             @endfor
                         </div>
                         <h5 class="mb-1">{{ $review->title }}</h5>
+                        <div class="small text-primary mb-2">{{ $review->serviceLabel() }}</div>
                         <p>{{ $review->comment }}</p>
                         <span class="fst-italic">{{ $review->user->name }}</span>
                     </div>
