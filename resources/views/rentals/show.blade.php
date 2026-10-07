@@ -1,126 +1,472 @@
 @extends('layouts.front')
+
 @section('title', 'Ma réservation #'.str_pad($rental->id, 4, '0', STR_PAD_LEFT))
 
 @section('content')
 <div class="container py-5" style="max-width:760px">
-    <a href="{{ route('rentals.index') }}" class="d-inline-block mb-4 text-decoration-none" style="color:#278658">
+
+    <a
+        href="{{ route('rentals.index') }}"
+        class="d-inline-block mb-4 text-decoration-none"
+        style="color:#278658"
+    >
         ← Mes réservations
     </a>
 
     @if(session('status'))
-    <div class="alert alert-success">{{ session('status') }}</div>
+        <div class="alert alert-success">
+            {{ session('status') }}
+        </div>
     @endif
+
     @if($errors->any())
-    <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $e)
+                    <li>{{ $e }}</li>
+                @endforeach
+            </ul>
+        </div>
     @endif
 
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
         <div>
-            <h2 class="mb-0">Réservation #{{ str_pad($rental->id, 4, '0', STR_PAD_LEFT) }}</h2>
-            <small class="text-muted">Créée le {{ $rental->created_at->translatedFormat('d F Y') }}</small>
+            <h2 class="mb-0">
+                Réservation #{{ str_pad($rental->id, 4, '0', STR_PAD_LEFT) }}
+            </h2>
+
+            <small class="text-muted">
+                Créée le
+                {{ $rental->created_at->translatedFormat('d F Y') }}
+            </small>
         </div>
-        <span class="rental-badge {{ $rental->statusClass() }}">{{ $rental->statusLabel() }}</span>
+
+        <span class="rental-badge {{ $rental->statusClass() }}">
+            {{ $rental->statusLabel() }}
+        </span>
     </div>
 
-    {{-- Equipment card --}}
-    <div class="card border-0 mb-4" style="border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+    {{-- Equipment --}}
+    <div
+        class="card border-0 mb-4"
+        style="border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08)"
+    >
         <div class="card-body">
             <div class="d-flex gap-3 align-items-center">
+
                 @if(!empty($rental->equipment->photos[0]))
-                <img src="{{ asset($rental->equipment->photos[0]) }}" alt="{{ $rental->equipment->title }}"
-                     style="width:80px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0">
+                    <img
+                        src="{{ asset($rental->equipment->photos[0]) }}"
+                        alt="{{ $rental->equipment->title }}"
+                        style="width:80px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0"
+                    >
                 @endif
+
                 <div>
-                    <span class="badge mb-1" style="background:#e8f5e9;color:#278658">{{ $rental->equipment->category->name }}</span>
-                    <h5 class="mb-0">{{ $rental->equipment->title }}</h5>
-                    <a href="{{ route('equipments.show', $rental->equipment) }}" class="small" style="color:#278658">Voir l'équipement</a>
+                    <span
+                        class="badge mb-1"
+                        style="background:#e8f5e9;color:#278658"
+                    >
+                        {{ $rental->equipment->category->name }}
+                    </span>
+
+                    <h5 class="mb-0">
+                        {{ $rental->equipment->title }}
+                    </h5>
+
+                    <a
+                        href="{{ route('equipments.show', $rental->equipment) }}"
+                        class="small"
+                        style="color:#278658"
+                    >
+                        Voir l'équipement
+                    </a>
                 </div>
+
             </div>
         </div>
     </div>
 
     {{-- Dates + price --}}
     <div class="row g-3 mb-4">
+
         <div class="col-6 col-md-3">
-            <div class="text-center p-3" style="background:#f0f9f4;border-radius:12px">
+            <div
+                class="text-center p-3"
+                style="background:#f0f9f4;border-radius:12px"
+            >
                 <small class="text-muted d-block">Début</small>
-                <strong>{{ $rental->start_date->format('d/m/Y') }}</strong>
+                <strong>
+                    {{ $rental->start_date->format('d/m/Y') }}
+                </strong>
             </div>
         </div>
+
         <div class="col-6 col-md-3">
-            <div class="text-center p-3" style="background:#f0f9f4;border-radius:12px">
+            <div
+                class="text-center p-3"
+                style="background:#f0f9f4;border-radius:12px"
+            >
                 <small class="text-muted d-block">Fin</small>
-                <strong>{{ $rental->end_date->format('d/m/Y') }}</strong>
+                <strong>
+                    {{ $rental->end_date->format('d/m/Y') }}
+                </strong>
             </div>
         </div>
+
         <div class="col-6 col-md-3">
-            <div class="text-center p-3" style="background:#f0f9f4;border-radius:12px">
+            <div
+                class="text-center p-3"
+                style="background:#f0f9f4;border-radius:12px"
+            >
                 <small class="text-muted d-block">Durée</small>
                 <strong>{{ $rental->durationDays() }} j</strong>
             </div>
         </div>
+
         <div class="col-6 col-md-3">
-            <div class="text-center p-3" style="background:#e8f5e9;border-radius:12px">
+            <div
+                class="text-center p-3"
+                style="background:#e8f5e9;border-radius:12px"
+            >
                 <small class="text-muted d-block">Total</small>
-                <strong style="color:#278658">{{ number_format($rental->total_price, 2, ',', ' ') }} €</strong>
+
+                <strong style="color:#278658">
+                    {{ number_format($rental->total_price, 2, ',', ' ') }} €
+                </strong>
             </div>
         </div>
+
     </div>
 
+    {{-- Notes --}}
     @if($rental->notes)
-    <div class="mb-4 p-3" style="background:#fafafa;border-radius:10px;border:1px solid #e5ebe3">
-        <strong>Notes</strong>
-        <p class="mb-0 mt-1 text-muted">{{ $rental->notes }}</p>
-    </div>
+        <div
+            class="mb-4 p-3"
+            style="background:#fafafa;border-radius:10px;border:1px solid #e5ebe3"
+        >
+            <strong>Notes</strong>
+
+            <p class="mb-0 mt-1 text-muted">
+                {{ $rental->notes }}
+            </p>
+        </div>
     @endif
 
     {{-- Payments --}}
     @if($rental->payments->isNotEmpty())
-    <div class="mb-4">
-        <h5 class="mb-3">Paiements</h5>
-        <div class="table-responsive">
-            <table class="table table-sm" style="border-radius:12px;overflow:hidden">
-                <thead style="background:#f0f9f4">
-                    <tr><th>Type</th><th>Montant</th><th>Méthode</th><th>Statut</th></tr>
-                </thead>
-                <tbody>
-                    @foreach($rental->payments as $p)
-                    <tr>
-                        <td>{{ $p->typeLabel() }}</td>
-                        <td><strong>{{ number_format($p->amount, 2, ',', ' ') }} €</strong></td>
-                        <td>{{ $p->methodLabel() }}</td>
-                        <td>
-                            <span class="badge" style="{{ $p->status === 'paid' ? 'background:#e8f5e9;color:#2e7d32' : ($p->status === 'refunded' ? 'background:#e3f2fd;color:#1565c0' : 'background:#fff8e1;color:#e65100') }}">
-                                {{ $p->statusLabel() }}
-                            </span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="mb-4">
+
+            <h5 class="mb-3">Paiements</h5>
+
+            <div class="table-responsive">
+                <table
+                    class="table table-sm"
+                    style="border-radius:12px;overflow:hidden"
+                >
+                    <thead style="background:#f0f9f4">
+                        <tr>
+                            <th>Type</th>
+                            <th>Montant</th>
+                            <th>Méthode</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach($rental->payments as $p)
+                            <tr>
+                                <td>{{ $p->typeLabel() }}</td>
+
+                                <td>
+                                    <strong>
+                                        {{ number_format($p->amount, 2, ',', ' ') }} €
+                                    </strong>
+                                </td>
+
+                                <td>{{ $p->methodLabel() }}</td>
+
+                                <td>
+                                    <span
+                                        class="badge"
+                                        style="{{
+                                            $p->status === 'paid'
+                                                ? 'background:#e8f5e9;color:#2e7d32'
+                                                : (
+                                                    $p->status === 'refunded'
+                                                        ? 'background:#e3f2fd;color:#1565c0'
+                                                        : 'background:#fff8e1;color:#e65100'
+                                                )
+                                        }}"
+                                    >
+                                        {{ $p->statusLabel() }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
         </div>
-    </div>
     @endif
 
-    {{-- Cancel action --}}
+    {{-- Delivery --}}
+    <div
+        class="card border-0 mb-4"
+        style="border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08)"
+    >
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="mb-1">
+                        <i
+                            class="fa fa-truck me-2"
+                            style="color:#278658"
+                        ></i>
+                        Livraison
+                    </h5>
+
+                    <small class="text-muted">
+                        Mode de récupération de votre équipement
+                    </small>
+                </div>
+            </div>
+
+            @php
+                $delivery = $rental->deliveries->sortByDesc('id')->first();
+            @endphp
+
+            @if($delivery)
+
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            Mode
+                        </small>
+
+                        <strong>
+                            {{
+                                $delivery->type === 'pickup'
+                                    ? 'Retrait en point'
+                                    : 'Livraison à domicile'
+                            }}
+                        </strong>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            Statut
+                        </small>
+
+                        @php
+                            $deliveryLabels = [
+                                'planned' => 'Planifiée',
+                                'in_transit' => 'En transit',
+                                'delivered' => 'Livrée',
+                                'returned' => 'Retournée',
+                            ];
+                        @endphp
+
+                        <span
+                            class="badge"
+                            style="background:#e8f5e9;color:#278658"
+                        >
+                            {{
+                                $deliveryLabels[$delivery->status]
+                                ?? $delivery->status
+                            }}
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            Date
+                        </small>
+
+                        <strong>
+                            {{ $delivery->scheduled_date->format('d/m/Y') }}
+                        </strong>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            Heure
+                        </small>
+
+                        <strong>
+                            {{ substr($delivery->scheduled_time, 0, 5) }}
+                        </strong>
+                    </div>
+
+                    @if(
+                        $delivery->type === 'pickup'
+                        && $delivery->pickupPoint
+                    )
+                        <div class="col-12">
+                            <small class="text-muted d-block">
+                                Point de retrait
+                            </small>
+
+                            <strong>
+                                <i
+                                    class="fa fa-map-marker-alt me-1"
+                                    style="color:#278658"
+                                ></i>
+
+                                {{ $delivery->pickupPoint->name }}
+                            </strong>
+
+                            @if($delivery->pickupPoint->address)
+                                <div class="small text-muted mt-1">
+                                    {{ $delivery->pickupPoint->address }}
+
+                                    @if($delivery->pickupPoint->city)
+                                        ,
+                                        {{ $delivery->pickupPoint->city }}
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if($delivery->pickupPoint->opening_hours)
+                                <div class="small text-muted">
+                                    <i class="far fa-clock me-1"></i>
+                                    {{ $delivery->pickupPoint->opening_hours }}
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            Frais
+                        </small>
+
+                        <strong>
+                            {{ number_format($delivery->delivery_fee, 2, ',', ' ') }}
+                            €
+                        </strong>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+
+                    <a
+                        href="{{ route('deliveries.edit', $delivery) }}"
+                        class="btn btn-sm btn-outline-success"
+                    >
+                        <i class="fa fa-edit me-1"></i>
+                        Modifier
+                    </a>
+
+                    <form
+                        method="POST"
+                        action="{{ route('deliveries.destroy', $delivery) }}"
+                        onsubmit="return confirm('Supprimer cette livraison ?')"
+                    >
+                        @csrf
+                        @method('DELETE')
+
+                        <button
+                            type="submit"
+                            class="btn btn-sm btn-outline-danger"
+                        >
+                            <i class="fa fa-trash me-1"></i>
+                            Supprimer
+                        </button>
+                    </form>
+
+                </div>
+
+            @else
+
+                <div
+                    class="text-center p-4"
+                    style="background:#f7fcf9;border-radius:12px"
+                >
+                    <i
+                        class="fa fa-truck mb-3"
+                        style="font-size:2rem;color:#278658"
+                    ></i>
+
+                    <h6>
+                        Aucune livraison configurée
+                    </h6>
+
+                    <p class="text-muted small">
+                        Choisissez comment vous souhaitez récupérer
+                        votre équipement.
+                    </p>
+
+                    <a
+                        href="{{ route('deliveries.create', $rental) }}"
+                        class="btn"
+                        style="background:#278658;color:white"
+                    >
+                        <i class="fa fa-plus me-2"></i>
+                        Choisir la livraison
+                    </a>
+                </div>
+
+            @endif
+
+        </div>
+    </div>
+
+    {{-- Cancel rental --}}
     @if($rental->isPending())
-    <form method="POST" action="{{ route('rentals.cancel', $rental) }}"
-          onsubmit="return confirm('Annuler cette réservation ?')">
-        @csrf @method('PATCH')
-        <button class="btn btn-outline-danger">
-            <i class="fa fa-times me-2"></i>Annuler la réservation
-        </button>
-    </form>
+        <form
+            method="POST"
+            action="{{ route('rentals.cancel', $rental) }}"
+            onsubmit="return confirm('Annuler cette réservation ?')"
+        >
+            @csrf
+            @method('PATCH')
+
+            <button class="btn btn-outline-danger">
+                <i class="fa fa-times me-2"></i>
+                Annuler la réservation
+            </button>
+        </form>
     @endif
+
 </div>
 
 <style>
-.rental-badge{padding:6px 16px;border-radius:20px;font-size:.85rem;font-weight:600}
-.badge-pending{background:#fff8e1;color:#e65100}
-.badge-accepted{background:#e8f5e9;color:#2e7d32}
-.badge-ongoing{background:#e3f2fd;color:#1565c0}
-.badge-returned{background:#f3e5f5;color:#6a1b9a}
-.badge-cancelled{background:#fce4ec;color:#b71c1c}
+.rental-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.badge-pending {
+    background: #fff8e1;
+    color: #e65100;
+}
+
+.badge-accepted {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.badge-ongoing {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.badge-returned {
+    background: #f3e5f5;
+    color: #6a1b9a;
+}
+
+.badge-cancelled {
+    background: #fce4ec;
+    color: #b71c1c;
+}
 </style>
 @endsection

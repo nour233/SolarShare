@@ -67,14 +67,18 @@ class RentalController extends Controller
 
     // ── Rental detail (renter can see their own) ─────────────────────────────
 
-    public function show(Rental $rental)
-    {
-        $this->authorizeRental($rental);
+  public function show(Rental $rental)
+{
+    $this->authorizeRental($rental);
 
-        return view('rentals.show', [
-            'rental' => $rental->load(['equipment.category', 'payments']),
-        ]);
-    }
+    return view('rentals.show', [
+        'rental' => $rental->load([
+            'equipment.category',
+            'payments',
+            'deliveries.pickupPoint',
+        ]),
+    ]);
+}
 
     // ── My rentals list ──────────────────────────────────────────────────────
 

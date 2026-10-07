@@ -28,11 +28,30 @@ class Rental extends Model
     }
 
     // Status helpers
-    public function isPending(): bool    { return $this->status === 'pending'; }
-    public function isAccepted(): bool   { return $this->status === 'accepted'; }
-    public function isOngoing(): bool    { return $this->status === 'ongoing'; }
-    public function isReturned(): bool   { return $this->status === 'returned'; }
-    public function isCancelled(): bool  { return $this->status === 'cancelled'; }
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isAccepted(): bool
+    {
+        return $this->status === 'accepted';
+    }
+
+    public function isOngoing(): bool
+    {
+        return $this->status === 'ongoing';
+    }
+
+    public function isReturned(): bool
+    {
+        return $this->status === 'returned';
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
 
     public function statusLabel(): string
     {
@@ -77,5 +96,11 @@ class Rental extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    // One rental can have multiple delivery records
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(Delivery::class);
     }
 }
