@@ -8,6 +8,9 @@ use App\Http\Controllers\ReclamationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\DeliveryController;
 
+Route::post('/equipments/ai-search', \App\Http\Controllers\EquipmentSearchController::class)
+    ->middleware('throttle:5,1')->name('equipments.ai-search');
+
 Route::get(
     '/',
     [\App\Http\Controllers\EquipmentController::class, 'home']
@@ -36,6 +39,13 @@ Route::get(
 */
 
 Route::middleware('guest')->group(function () {
+
+    Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'create'])->name('password.request');
+    Route::get('/forgot-password/code', [\App\Http\Controllers\Auth\PasswordResetController::class, 'code'])->name('password.code');
+    Route::post('/forgot-password/code', [\App\Http\Controllers\Auth\PasswordResetController::class, 'verifyCode'])->middleware('throttle:10,1')->name('password.code.verify');
+    Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'send'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'update'])->middleware('throttle:5,1')->name('password.update');
 
     Route::get(
         '/register',
@@ -311,6 +321,9 @@ Route::middleware(['auth', 'admin'])
         | Equipments
         |--------------------------------------------------------------------------
         */
+
+        Route::post('equipments/analyze-photo', \App\Http\Controllers\Admin\EquipmentPhotoController::class)
+            ->middleware('throttle:5,1')->name('admin.equipments.analyze-photo');
 
         Route::resource(
             'equipments',

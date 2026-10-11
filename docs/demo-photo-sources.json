@@ -1,0 +1,310 @@
+[
+  {
+    "file": "solar-1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Portable_solar_panel.jpg",
+    "author": "Tiia Monto",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "solar-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Portable_solar_panel2.jpg",
+    "author": "FlorianRost",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "solar-3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110366.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Goal_Zero_Yeti_1400_Lithium_Portable_Power_Station_with_WiFi_Battery_Pack_with_MacBook_Pro_-_USB-C_Power_Delivery_Specification_(PD_spec)_(43467687445).jpg",
+    "author": "Tony Webster from Minneapolis, Minnesota, United States",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0"
+  },
+  {
+    "file": "battery-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Anker_SOLIX_C300X_Portable_Power_Station.jpg",
+    "author": "TaurusEmerald",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110365.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "wind-1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Evance_R9000_5kW_small_domestic_wind_turbine.JPG",
+    "author": "Tobi Kellner",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "wind-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine_closeup.JPG",
+    "author": "Editor abcdef",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "file": "wind-3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine_on_roof.JPG",
+    "author": "Andol",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "solar-variety-1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Paneles_solares_en_Cari%C3%B1ena,_Espa%C3%B1a,_2015-01-08,_DD_09-12_PAN.JPG",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "solar-variety-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Ground_mounted_solar_panels.gk.jpg",
+    "author": "Grendelkhan",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "solar-variety-3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Photovoltaic_panel_at_the_National_Solar_Energy_Center_in_Israel.jpg",
+    "author": "David Shankbone",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0"
+  },
+  {
+    "file": "solar-variety-4.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Solar_panel_color_icon.png",
+    "author": "Tommaso.sansone91",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "file": "solar-variety-5.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Hybrid_Solar_Panel_Structure.jpg",
+    "author": "Debora Castelnuovo",
+    "license": "Copyrighted free use",
+    "license_url": ""
+  },
+  {
+    "file": "solar-variety-6.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Solar_panel_icon.png",
+    "author": "Tommaso.sansone91",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "file": "solar-variety-7.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Photovoltaic_Panels_at_the_Travers_Solar_Farm.jpg",
+    "author": "Kkiefuik\n\n This photo was taken with Canon EOS Rebel T5i",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0"
+  },
+  {
+    "file": "solar-variety-8.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Photovoltaic_panel_-_Mus%C3%A9e_du_Verre_et_du_Vitrail.JPG",
+    "author": "Albane46",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "solar-variety-9.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Solar_panel_ship.jpg",
+    "author": "Ddgfoto",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "solar-variety-10.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Photovoltaic_Panels_at_a_Solar_Farm_Near_Vulcan,_Alberta.jpg",
+    "author": "Kkiefuik\n\n This photo was taken with Canon EOS 90D",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0"
+  },
+  {
+    "file": "solar-variety-12.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Photovoltaic_arrays_at_the_Israeli_National_Solar_Energy_Center.jpg",
+    "author": "David Shankbone",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0"
+  },
+  {
+    "file": "battery-variety-1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Goal_Zero_Yeti_1400_Lithium_Portable_Power_Station_with_WiFi_Battery_Pack_with_MacBook_Pro_-_USB-C_Power_Delivery_Specification_(PD_spec)_(43467687445).jpg",
+    "author": "Tony Webster from Minneapolis, Minnesota, United States",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0"
+  },
+  {
+    "file": "battery-variety-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Anker_SOLIX_C300X_Portable_Power_Station.jpg",
+    "author": "TaurusEmerald",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110365.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-4.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110388.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-5.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110389.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-6.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110366.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-7.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110367.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-8.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110390.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-9.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110387.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-10.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110363.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-11.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allpowers_S300_portable_solar_generator_P1110386.jpg",
+    "author": "-stk",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "battery-variety-12.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Cobra_CPI-475_400w_power_inverter_with_USB_front.jpeg",
+    "author": "Zuzu",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "wind-variety-1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Evance_R9000_5kW_small_domestic_wind_turbine.JPG",
+    "author": "Tobi Kellner",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "wind-variety-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine_closeup.JPG",
+    "author": "Editor abcdef",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "file": "wind-variety-3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine_on_roof.JPG",
+    "author": "Andol",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "wind-variety-4.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine_on_roof2.JPG",
+    "author": "Andol",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "wind-variety-5.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine.JPG",
+    "author": "Editor abcdef",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "file": "wind-variety-6.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Proven_6kW_small_wind_turbine.JPG",
+    "author": "Tobi Kellner",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "wind-variety-7.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Leonardo_small_scale_wind_turbine_2.jpg",
+    "author": "Tiia Monto",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "wind-variety-8.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Eigg_wind_turbines.jpg",
+    "author": "W. L. Tarbert",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "file": "wind-variety-9.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Leonardo_small_scale_wind_turbine.jpg",
+    "author": "Tiia Monto",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "wind-variety-10.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Wind-power-small-scale.jpg",
+    "author": "",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0"
+  },
+  {
+    "file": "wind-variety-11.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Poles_for_lighting_and_catenary_support_at_W._end_of_Tilikum_Crossing,_topped_by_wind_turbines_(2019).jpg",
+    "author": "Steve Morgan",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "file": "wind-variety-12.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Small_wind_turbine_power_output.png",
+    "author": "Wikideas1",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  }
+]

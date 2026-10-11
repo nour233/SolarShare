@@ -52,6 +52,11 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordLink($token));
+    }
+
     public function equipments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Equipment::class, 'owner_id');
