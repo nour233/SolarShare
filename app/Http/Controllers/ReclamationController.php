@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reclamation;
+use App\Models\User;
+use App\Notifications\NewReclamationSubmitted;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +25,17 @@ class ReclamationController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate($this->rules());
-        $request->user()->reclamations()->create($data);
+        $reclamation = $request->user()->reclamations()->create($data);
+
+        // Notify admins
+        try {
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewReclamationSubmitted($reclamation));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('NewReclamationSubmitted notification failed: ' . $e->getMessage());
+        }
 
         return redirect()->route('reclamations.index')->with('status', 'Votre réclamation a bien été envoyée.');
     }

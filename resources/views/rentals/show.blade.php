@@ -154,6 +154,49 @@
         </div>
     @endif
 
+    {{-- Online Payment Actions --}}
+    @php
+        $remaining = $rental->remainingBalance();
+        $depositDue = (float) ($rental->equipment?->deposit ?? 0);
+        $depositPaid = $rental->paidDeposit();
+    @endphp
+
+    @if($remaining > 0 || ($depositDue > 0 && $depositPaid < $depositDue))
+        <div class="card border-0 mb-4 text-white" style="border-radius:16px; background: linear-gradient(135deg, #278658 0%, #17372c 100%); box-shadow:0 4px 18px rgba(39,134,88,.25)">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <span class="badge bg-white text-success mb-2 text-uppercase fw-bold" style="font-size:0.7rem;letter-spacing:1px">Paiement en ligne sécurisé</span>
+                        <h4 class="mb-1 text-white fw-bold">Régler votre réservation</h4>
+                        <p class="mb-0 text-white-50 small">Paiement instantané par carte bancaire via Stripe Sandbox</p>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        @if($remaining > 0)
+                            <form method="POST" action="{{ route('payments.checkout', $rental->id) }}" class="m-0">
+                                @csrf
+                                <input type="hidden" name="type" value="rental">
+                                <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-pill shadow-sm">
+                                    <i class="fa fa-credit-card me-1"></i> Payer la location ({{ number_format($remaining, 2, ',', ' ') }} €)
+                                </button>
+                            </form>
+                        @endif
+
+                        @if($depositDue > 0 && $depositPaid < $depositDue)
+                            <form method="POST" action="{{ route('payments.checkout', $rental->id) }}" class="m-0">
+                                @csrf
+                                <input type="hidden" name="type" value="deposit">
+                                <button type="submit" class="btn btn-outline-light fw-bold px-4 py-2 rounded-pill shadow-sm">
+                                    <i class="fa fa-shield-alt me-1"></i> Régler la caution ({{ number_format($depositDue - $depositPaid, 2, ',', ' ') }} €)
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Payments --}}
     @if($rental->payments->isNotEmpty())
         <div class="mb-4">
@@ -171,6 +214,7 @@
                             <th>Montant</th>
                             <th>Méthode</th>
                             <th>Statut</th>
+                            <th class="text-end">Action</th>
                         </tr>
                     </thead>
 
@@ -202,6 +246,14 @@
                                     >
                                         {{ $p->statusLabel() }}
                                     </span>
+                                </td>
+
+                                <td class="text-end">
+                                    @if($p->status === 'paid')
+                                        <a href="{{ route('payments.invoice', [$rental->id, $p->id]) }}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Télécharger la facture">
+                                            <i class="fa fa-file-pdf text-danger me-1"></i> Facture
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

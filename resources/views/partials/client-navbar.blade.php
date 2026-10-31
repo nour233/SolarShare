@@ -18,6 +18,9 @@
                 <a href="{{ route('reclamations.index') }}" class="nav-item nav-link {{ request()->routeIs('reclamations.*') ? 'active' : '' }}">Réclamations</a>
                 @php($unreadIncidents = \App\Models\IncidentMessage::unreadCountFor(auth()->user()))
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.incidents.index') : route('incidents.index') }}" class="nav-item nav-link {{ request()->routeIs('incidents.*') ? 'active' : '' }}">{{ auth()->user()->isAdmin() ? 'Incidents' : 'Mes signalements' }}<span class="unread-badge" data-unread-badge title="Messages non lus" @if(!$unreadIncidents) hidden @endif>{{ $unreadIncidents }}</span></a>
+                <div class="d-flex align-items-center">
+                    @include('partials.notification-dropdown')
+                </div>
                 <span class="nav-item nav-link">{{ auth()->user()->name }}</span>
             @endauth
         </div>

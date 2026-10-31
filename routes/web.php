@@ -7,6 +7,8 @@ use App\Http\Controllers\RentalController;
 use App\Http\Controllers\ReclamationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 
 Route::post('/equipments/ai-search', \App\Http\Controllers\EquipmentSearchController::class)
     ->middleware('throttle:5,1')->name('equipments.ai-search');
@@ -258,6 +260,12 @@ Route::middleware('auth')->group(function () {
         [RentalController::class, 'cancel']
     )->name('rentals.cancel');
 
+    // Live pricing estimate (AJAX)
+    Route::get(
+        '/equipments/{equipment}/rent/price',
+        [RentalController::class, 'priceEstimate']
+    )->name('rentals.price-estimate');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -351,6 +359,29 @@ Route::middleware(['auth', 'admin'])
             'rentals/{rental}/status',
             [\App\Http\Controllers\Admin\RentalController::class, 'updateStatus']
         )->name('admin.rentals.status');
+
+        // Statistics dashboard
+        Route::get(
+            'rentals-statistics',
+            [\App\Http\Controllers\Admin\RentalController::class, 'statistics']
+        )->name('admin.rentals.statistics');
+
+        // PDF contract download
+        Route::get(
+            'rentals/{rental}/contract',
+            [\App\Http\Controllers\Admin\RentalController::class, 'contract']
+        )->name('admin.rentals.contract');
+
+        // Pricing rules
+        Route::get(
+            'pricing',
+            [\App\Http\Controllers\Admin\PricingRuleController::class, 'index']
+        )->name('admin.pricing.index');
+
+        Route::put(
+            'pricing',
+            [\App\Http\Controllers\Admin\PricingRuleController::class, 'update']
+        )->name('admin.pricing.update');
 
 
         /*
@@ -513,4 +544,30 @@ Route::middleware(['auth', 'admin'])
             ]);
 
         })->name('admin.dashboard');
+
+        // Admin notifications
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications (authenticated - shared for client & admin)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/{id}/read-ajax', [NotificationController::class, 'markAsReadAjax'])->name('notifications.read-ajax');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payments (Stripe Checkout & Invoices)
+    |--------------------------------------------------------------------------
+    */
+    Route::post('/rentals/{rental}/checkout', [PaymentController::class, 'checkout'])->name('payments.checkout');
+    Route::post('/rentals/{rental}/checkout/sandbox', [PaymentController::class, 'processSandbox'])->name('payments.sandbox.process');
+    Route::get('/rentals/{rental}/payments/success', [PaymentController::class, 'success'])->name('payments.success');
+    Route::get('/rentals/{rental}/payments/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
+    Route::get('/rentals/{rental}/payments/{payment}/invoice', [PaymentController::class, 'invoice'])->name('payments.invoice');
