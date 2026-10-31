@@ -13,6 +13,9 @@ class Payment extends Model
         'status',
         'type',
         'rental_id',
+        'stripe_session_id',
+        'stripe_payment_intent',
+        'invoice_number',
         'notes',
     ];
 

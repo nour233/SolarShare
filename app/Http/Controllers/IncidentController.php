@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Equipment;
 use App\Models\Incident;
 use App\Models\IncidentMessage;
+use App\Models\User;
+use App\Notifications\NewIncidentReported;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -45,6 +47,16 @@ class IncidentController extends Controller
             'severity' => $data['severity'],
             'photos' => self::storePhotos($request),
         ]);
+
+        // Notify admins
+        try {
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewIncidentReported($incident));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('NewIncidentReported notification failed: ' . $e->getMessage());
+        }
 
         return redirect()->route('incidents.show', $incident)->with('status', 'Merci ! Votre signalement a bien été envoyé.');
     }

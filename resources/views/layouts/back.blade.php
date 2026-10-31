@@ -263,6 +263,20 @@
                 <i class="fa fa-calendar-alt me-2"></i>
                 Locations
             </a>
+            <a
+                class="{{ request()->routeIs('admin.rentals.statistics') ? 'active' : '' }}"
+                href="{{ route('admin.rentals.statistics') }}"
+            >
+                <i class="fa fa-chart-bar me-2"></i>
+                Statistiques
+            </a>
+            <a
+                class="{{ request()->routeIs('admin.pricing.*') ? 'active' : '' }}"
+                href="{{ route('admin.pricing.index') }}"
+            >
+                <i class="fa fa-sliders-h me-2"></i>
+                Tarification
+            </a>
 
 
             {{-- ================================================= --}}
@@ -349,6 +363,15 @@
             </a>
 
 
+            {{-- Notifications --}}
+            <a
+                class="{{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}"
+                href="{{ route('admin.notifications.index') }}"
+            >
+                <i class="fa fa-bell me-2"></i>
+                Notifications
+            </a>
+
             {{-- Front office --}}
             <a href="{{ route('home') }}">
                 <i class="fa fa-external-link-alt me-2"></i>
@@ -377,6 +400,8 @@
 
 
             <div class="d-flex align-items-center gap-3">
+
+                @include('partials.notification-dropdown')
 
                 <span>
                     {{ auth()->user()->name }}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reclamation;
+use App\Notifications\ReclamationAnswered;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -34,6 +35,13 @@ class ReclamationController extends Controller
             'admin_response' => ['nullable', 'string', 'max:5000'],
         ]);
         $reclamation->update($data);
+
+        // Notify client about reclamation status update or response
+        try {
+            $reclamation->user?->notify(new ReclamationAnswered($reclamation));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ReclamationAnswered notification failed: ' . $e->getMessage());
+        }
 
         return back()->with('status', 'Statut de la réclamation mis à jour.');
     }

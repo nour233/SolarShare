@@ -119,18 +119,19 @@
 
                         {{-- Live price estimate --}}
                         <div id="price-estimate" class="mb-3 p-3" style="background:#f0f9f4;border-radius:10px;display:none">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Durée</span>
-                                <span id="est-days">–</span>
+                            <div id="pricing-loading" class="text-muted small text-center py-2" style="display:none">
+                                <i class="fa fa-spinner fa-spin me-1"></i> Calcul en cours…
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Location (<span id="est-rate">{{ number_format($equipment->price_per_day, 2, ',', ' ') }} € / j</span>)</span>
-                                <strong id="est-total">–</strong>
+                            <div id="pricing-rows"></div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Total estimé</strong>
+                                <strong id="est-total" style="color:#278658;font-size:1.1rem">–</strong>
                             </div>
-                            <div class="d-flex justify-content-between mt-1">
-                                <span class="text-muted">Caution (à la remise)</span>
-                                <span>{{ number_format($equipment->deposit, 2, ',', ' ') }} €</span>
-                            </div>
+                            <small class="text-muted d-block mt-1">
+                                <i class="fa fa-info-circle me-1"></i>
+                                Prix ajusté selon week-ends, saison et durée.
+                            </small>
                         </div>
 
                         <div class="mb-3">
@@ -142,7 +143,6 @@
                         {{-- Booked ranges for JS calendar hint --}}
                         <script>
                             const bookedRanges = @json($bookedRanges);
-                            const pricePerDay  = {{ $equipment->price_per_day }};
                         </script>
 
                         <button type="submit" class="btn w-100 py-3 fw-bold" style="background:#278658;color:white;border-radius:10px;font-size:1rem">
@@ -173,29 +173,62 @@
 </div>
 
 <script>
-// Live price estimator
-const startInput = document.getElementById('start_date');
-const endInput   = document.getElementById('end_date');
-const estimate   = document.getElementById('price-estimate');
-const estDays    = document.getElementById('est-days');
-const estTotal   = document.getElementById('est-total');
+// Smart live pricing via AJAX
+const startInput  = document.getElementById('start_date');
+const endInput    = document.getElementById('end_date');
+const estimate    = document.getElementById('price-estimate');
+const estTotal    = document.getElementById('est-total');
+const pricingRows = document.getElementById('pricing-rows');
+const loadingEl   = document.getElementById('pricing-loading');
 
-function updateEstimate() {
+let debounceTimer = null;
+
+function fetchPrice() {
     if (!startInput.value || !endInput.value) { estimate.style.display = 'none'; return; }
-    const s = new Date(startInput.value);
-    const e = new Date(endInput.value);
+    const s = new Date(startInput.value), e = new Date(endInput.value);
     if (e < s) { estimate.style.display = 'none'; return; }
-    const days  = Math.round((e - s) / 86400000) + 1;
-    const total = (days * pricePerDay).toFixed(2).replace('.', ',');
-    estDays.textContent  = days + ' jour' + (days > 1 ? 's' : '');
-    estTotal.textContent = total + ' €';
+
     estimate.style.display = 'block';
-    // Also push min date on end field
+    loadingEl.style.display = 'block';
+    pricingRows.innerHTML = '';
+
+    const url = `{{ route('rentals.price-estimate', $equipment) }}?start_date=${startInput.value}&end_date=${endInput.value}`;
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(data => {
+            loadingEl.style.display = 'none';
+            pricingRows.innerHTML = '';
+
+            data.breakdown.filter(r => r.type !== 'total').forEach(row => {
+                const color = row.type === 'discount' ? 'color:#2e7d32' : (row.type === 'surcharge' ? 'color:#e65100' : '');
+                const prefix = row.amount < 0 ? '' : (row.type === 'surcharge' ? '+' : '');
+                pricingRows.innerHTML += `
+                    <div class="d-flex justify-content-between mb-1" style="font-size:.9rem">
+                        <span class="text-muted">${row.label}</span>
+                        <span style="${color}">${prefix}${Math.abs(row.amount).toFixed(2).replace('.', ',')} €</span>
+                    </div>`;
+            });
+
+            estTotal.textContent = parseFloat(data.total_price).toFixed(2).replace('.', ',') + ' €';
+            endInput.min = startInput.value;
+        })
+        .catch(() => {
+            loadingEl.style.display = 'none';
+            estTotal.textContent = '–';
+        });
+}
+
+function onDateChange() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(fetchPrice, 400);
     endInput.min = startInput.value;
 }
 
-startInput.addEventListener('change', updateEstimate);
-endInput.addEventListener('change', updateEstimate);
-updateEstimate();
+startInput.addEventListener('change', onDateChange);
+endInput.addEventListener('change', onDateChange);
+
+// Pre-fill from ?start= query param
+if (startInput.value) fetchPrice();
 </script>
 @endsection

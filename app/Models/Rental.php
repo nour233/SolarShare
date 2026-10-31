@@ -16,14 +16,19 @@ class Rental extends Model
         'equipment_id',
         'renter_id',
         'notes',
+        'risk_score',
+        'risk_level',
+        'risk_factors',
     ];
 
     protected function casts(): array
     {
         return [
-            'start_date'  => 'date',
-            'end_date'    => 'date',
-            'total_price' => 'decimal:2',
+            'start_date'   => 'date',
+            'end_date'     => 'date',
+            'total_price'  => 'decimal:2',
+            'risk_score'   => 'integer',
+            'risk_factors' => 'array',
         ];
     }
 
@@ -102,5 +107,39 @@ class Rental extends Model
     public function deliveries(): HasMany
     {
         return $this->hasMany(Delivery::class);
+    }
+
+    // ── Payment helpers ───────────────────────────────────────────────────────
+
+    /** Sum of all paid rental payments */
+    public function paidAmount(): float
+    {
+        return (float) $this->payments->where('type', 'rental')->where('status', 'paid')->sum('amount');
+    }
+
+    /** Sum of all paid deposit payments */
+    public function paidDeposit(): float
+    {
+        return (float) $this->payments->where('type', 'deposit')->where('status', 'paid')->sum('amount');
+    }
+
+    /** Remaining balance on rental (not yet paid) */
+    public function remainingBalance(): float
+    {
+        return max(0, (float) $this->total_price - $this->paidAmount());
+    }
+
+    /** Whether the deposit has been fully refunded */
+    public function depositRefunded(): bool
+    {
+        return $this->payments->where('type', 'deposit')->where('status', 'refunded')->isNotEmpty();
+    }
+
+    /** Whether the deposit is pending refund (returned but not yet refunded) */
+    public function depositPendingRefund(): bool
+    {
+        return $this->isReturned()
+            && $this->payments->where('type', 'deposit')->where('status', 'paid')->isNotEmpty()
+            && ! $this->depositRefunded();
     }
 }
