@@ -545,6 +545,11 @@ Route::middleware(['auth', 'admin'])
         )->name('admin.reputation.index');
 
         Route::get(
+            '/reputation/download',
+            [\App\Http\Controllers\Admin\ReputationController::class, 'download']
+        )->name('admin.reputation.download');
+
+        Route::get(
             '/reputation/clients',
             [\App\Http\Controllers\Admin\ReputationController::class, 'clients']
         )->name('admin.reputation.clients');

@@ -2,8 +2,12 @@
 @section('title', 'Réputation')
 @section('content')
 <section class="office-banner">
-    <h2>Rapport de réputation</h2>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div><h2>Rapport de réputation</h2>
     <p class="mb-0">Analysez les avis clients pour comprendre la perception de SolarShare et de chaque service.</p>
+        </div>
+        <a href="{{ route('admin.reputation.download') }}" class="btn btn-primary"><i class="fas fa-file-pdf me-2" aria-hidden="true"></i>Télécharger le rapport</a>
+    </div>
 </section>
 
 <div class="row g-4 mb-4">

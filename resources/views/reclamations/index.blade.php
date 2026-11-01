@@ -9,22 +9,15 @@
         <a href="{{ route('reclamations.create') }}" class="btn btn-primary rounded-pill px-4">Déposer une réclamation <i class="fa fa-plus ms-2"></i></a>
     </div>
     @if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
-    <div class="surface p-4">
-        @if($reclamations->isEmpty())
-            <div class="text-center py-5"><i class="fa fa-comments fa-3x text-primary mb-3"></i><h4>Aucune réclamation</h4><p>Vous n’avez encore envoyé aucune réclamation.</p></div>
-        @else
-            <div class="table-responsive"><table class="table align-middle">
-                <thead><tr><th>Sujet</th><th>Service concerné</th><th>Date</th><th>Statut</th><th></th></tr></thead>
-                <tbody>@foreach($reclamations as $reclamation)<tr>
-                    <td class="fw-bold">{{ $reclamation->subject }}</td>
-                    <td>{{ $reclamation->typeLabel() }}</td>
-                    <td>{{ $reclamation->reclamation_date->format('d/m/Y') }}</td>
-                    <td><span class="reclamation-status {{ $reclamation->statusClass() }}">{{ $reclamation->statusLabel() }}</span></td>
-                    <td class="text-end"><a href="{{ route('reclamations.show', $reclamation) }}" class="btn btn-outline-primary btn-sm rounded-pill">Consulter</a></td>
-                </tr>@endforeach</tbody>
-            </table></div>
-        @endif
-    </div>
-    <div class="mt-4">{{ $reclamations->links('pagination::bootstrap-5') }}</div>
+    <form method="GET" action="{{ route('reclamations.index') }}" class="row g-2 mb-4" data-reclamation-filters data-results="#client-reclamation-results">
+        <div class="col-md-5"><input class="form-control" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Rechercher dans vos réclamations" aria-label="Rechercher"></div>
+        <div class="col-md-3"><select class="form-select" name="type"><option value="">Tous les services</option>@foreach(\App\Models\Reclamation::TYPES as $value => $label)<option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>@endforeach</select></div>
+        <div class="col-md-2"><select class="form-select" name="status"><option value="">Tous les statuts</option>@foreach(\App\Models\Reclamation::STATUSES as $value => $label)<option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>@endforeach</select></div>
+        <div class="col-md-2"><select class="form-select" name="sort" aria-label="Trier"><option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>Plus récentes</option><option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>Plus anciennes</option><option value="subject" @selected(($filters['sort'] ?? '') === 'subject')>Sujet A-Z</option></select></div>
+    </form>
+    <div class="surface p-4" id="client-reclamation-results">@include('reclamations._results')</div>
 </div>
+@endsection
+@section('scripts')
+<script src="{{ asset('front/js/reclamations.js') }}"></script>
 @endsection

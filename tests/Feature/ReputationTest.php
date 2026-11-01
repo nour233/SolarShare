@@ -39,4 +39,23 @@ class ReputationTest extends TestCase
             ->get('/admin/reputation')
             ->assertForbidden();
     }
+
+    public function test_admin_can_download_reputation_report_as_pdf(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $client = User::factory()->create(['name' => 'Client PDF']);
+        Review::create([
+            'user_id' => $client->id,
+            'service' => 'maintenance',
+            'rating' => 5,
+            'title' => 'Très bon service',
+            'comment' => 'Une intervention efficace.',
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/reputation/download')
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertDownload('rapport-reputation-solarshare.pdf');
+    }
 }

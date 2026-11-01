@@ -12,15 +12,39 @@ class ReclamationController extends Controller
 {
     public function index(Request $request)
     {
-        $status = array_key_exists($request->query('status'), Reclamation::STATUSES)
-            ? $request->query('status')
-            : null;
-
-        return view('back.reclamations.index', [
-            'reclamations' => Reclamation::with('user')->when($status, fn ($query) => $query->where('status', $status))
-                ->latest()->paginate(15)->withQueryString(),
-            'status' => $status,
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'type' => ['nullable', Rule::in(array_keys(Reclamation::TYPES))],
+            'status' => ['nullable', Rule::in(array_keys(Reclamation::STATUSES))],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'subject', 'client'])],
         ]);
+        $sort = $filters['sort'] ?? 'newest';
+        $query = Reclamation::with('user')
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(function ($query) use ($search) {
+                $query->where('subject', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+            }))
+            ->when($filters['type'] ?? null, fn ($query, $type) => $query->where('type', $type))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status));
+
+        if ($sort === 'client') {
+            $query->join('users', 'users.id', '=', 'reclamations.user_id')
+                ->select('reclamations.*')
+                ->orderBy('users.name');
+        } elseif ($sort === 'subject') {
+            $query->orderBy('subject');
+        } else {
+            $query->orderBy('created_at', $sort === 'oldest' ? 'asc' : 'desc');
+        }
+
+        $reclamations = $query->paginate(15)->withQueryString();
+        $data = ['reclamations' => $reclamations, 'filters' => $filters + ['sort' => $sort]];
+
+        if ($request->expectsJson()) {
+            return response()->json(['html' => view('back.reclamations._results', $data)->render()]);
+        }
+
+        return view('back.reclamations.index', $data);
     }
 
     public function show(Reclamation $reclamation)

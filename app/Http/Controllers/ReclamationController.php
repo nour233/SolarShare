@@ -12,9 +12,35 @@ class ReclamationController extends Controller
 {
     public function index(Request $request)
     {
-        return view('reclamations.index', [
-            'reclamations' => $request->user()->reclamations()->latest('reclamation_date')->paginate(10),
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'type' => ['nullable', Rule::in(array_keys(Reclamation::TYPES))],
+            'status' => ['nullable', Rule::in(array_keys(Reclamation::STATUSES))],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'subject'])],
         ]);
+        $sort = $filters['sort'] ?? 'newest';
+        $query = $request->user()->reclamations()
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(function ($query) use ($search) {
+                $query->where('subject', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            }))
+            ->when($filters['type'] ?? null, fn ($query, $type) => $query->where('type', $type))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status));
+
+        if ($sort === 'subject') {
+            $query->orderBy('subject');
+        } else {
+            $query->orderBy('reclamation_date', $sort === 'oldest' ? 'asc' : 'desc');
+        }
+
+        $reclamations = $query->paginate(10)->withQueryString();
+        $data = ['reclamations' => $reclamations, 'filters' => $filters + ['sort' => $sort]];
+
+        if ($request->expectsJson()) {
+            return response()->json(['html' => view('reclamations._results', $data)->render()]);
+        }
+
+        return view('reclamations.index', $data);
     }
 
     public function create()

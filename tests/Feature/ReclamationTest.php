@@ -92,4 +92,48 @@ class ReclamationTest extends TestCase
             'review_author_name' => 'Client Solar',
         ]);
     }
+
+    public function test_client_can_filter_reclamations_without_a_full_page_response(): void
+    {
+        $user = User::factory()->create();
+        Reclamation::create([
+            'user_id' => $user->id,
+            'type' => 'maintenance',
+            'subject' => 'Maintenance urgente',
+            'description' => 'Une maintenance urgente est nécessaire.',
+            'reclamation_date' => today(),
+            'status' => 'en_cours',
+        ]);
+        Reclamation::create([
+            'user_id' => $user->id,
+            'type' => 'livraison',
+            'subject' => 'Question livraison',
+            'description' => 'Je souhaite connaître la date de livraison.',
+            'reclamation_date' => today()->subDay(),
+        ]);
+
+        $this->actingAs($user)
+            ->getJson('/reclamations?search=urgente&status=en_cours&sort=subject')
+            ->assertOk()
+            ->assertJsonPath('html', fn (string $html): bool => str_contains($html, 'Maintenance urgente') && ! str_contains($html, 'Question livraison'));
+    }
+
+    public function test_admin_can_search_filter_and_sort_reclamations_without_a_full_page_response(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $client = User::factory()->create(['name' => 'Client Recherche']);
+        Reclamation::create([
+            'user_id' => $client->id,
+            'type' => 'avis',
+            'subject' => 'Avis à examiner',
+            'description' => 'Cet avis doit être examiné par l’administration.',
+            'reclamation_date' => today(),
+            'status' => 'en_cours',
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/admin/reclamations?search=Recherche&status=en_cours&sort=client')
+            ->assertOk()
+            ->assertJsonPath('html', fn (string $html): bool => str_contains($html, 'Client Recherche') && str_contains($html, 'Avis à examiner'));
+    }
 }

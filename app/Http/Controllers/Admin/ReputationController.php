@@ -8,10 +8,25 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReputationController extends Controller
 {
     public function index(): View
+    {
+        return view('back.reputation.index', $this->reportData());
+    }
+
+    public function download()
+    {
+        $data = $this->reportData();
+
+        return Pdf::loadView('back.reputation.pdf', $data)
+            ->setPaper('a4', 'portrait')
+            ->download('rapport-reputation-solarshare.pdf');
+    }
+
+    private function reportData(): array
     {
         $reviews = Review::with('user')->latest()->get();
         $ratedReviews = $reviews->whereNotNull('rating');
@@ -43,7 +58,9 @@ class ReputationController extends Controller
             ];
         })->sortByDesc('count')->values();
 
-        return view('back.reputation.index', [
+        $rankedClients = $clients->filter(fn (array $client): bool => $client['average'] !== null);
+
+        return [
             'totalReviews' => $reviews->count(),
             'clientCount' => $clients->count(),
             'averageRating' => $averageRating,
@@ -53,7 +70,9 @@ class ReputationController extends Controller
             'services' => $services,
             'clients' => $clients,
             'recentReviews' => $reviews->take(8),
-        ]);
+            'bestClients' => $rankedClients->sortByDesc('average')->take(5)->values(),
+            'worstClients' => $rankedClients->sortBy('average')->take(5)->values(),
+        ];
     }
 
     public function clients(): View
