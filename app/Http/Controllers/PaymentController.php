@@ -137,6 +137,13 @@ class PaymentController extends Controller
             $rental->renter?->notify(new PaymentRecorded($payment));
         } catch (\Throwable $e) {}
 
+        // Dynamically update user RFM segment
+        try {
+            if ($rental->renter) {
+                app(\App\Services\RfmSegmentationService::class)->segmentUser($rental->renter);
+            }
+        } catch (\Throwable $e) {}
+
         return redirect()->route('payments.success', [
             'rental'     => $rental->id,
             'session_id' => $sessionId,

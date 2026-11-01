@@ -372,6 +372,15 @@
                 Notifications
             </a>
 
+            {{-- Segmentation RFM --}}
+            <a
+                class="{{ request()->routeIs('admin.segmentation.*') ? 'active' : '' }}"
+                href="{{ route('admin.segmentation.index') }}"
+            >
+                <i class="fa fa-chart-pie me-2"></i>
+                Segmentation Clients
+            </a>
+
             {{-- Front office --}}
             <a href="{{ route('home') }}">
                 <i class="fa fa-external-link-alt me-2"></i>

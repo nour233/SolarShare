@@ -22,6 +22,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'rfm_segment',
+        'rfm_recency_score',
+        'rfm_frequency_score',
+        'rfm_monetary_score',
+        'rfm_total_score',
+        'rfm_total_spent',
+        'rfm_rental_count',
+        'rfm_days_since_last',
+        'rfm_segmented_at',
     ];
 
     /**
@@ -46,9 +55,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+
+            'rfm_total_score' => 'decimal:2',
+            'rfm_total_spent' => 'decimal:2',
+            'rfm_segmented_at' => 'datetime',
+
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
+
         ];
     }
 

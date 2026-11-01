@@ -585,6 +585,16 @@ Route::middleware(['auth', 'admin'])
 
         // Admin notifications
         Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Segmentation RFM
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/segmentation', [\App\Http\Controllers\Admin\SegmentationController::class, 'index'])->name('admin.segmentation.index');
+        Route::post('/segmentation/run', [\App\Http\Controllers\Admin\SegmentationController::class, 'run'])->name('admin.segmentation.run');
+        Route::post('/segmentation/notify', [\App\Http\Controllers\Admin\SegmentationController::class, 'notify'])->name('admin.segmentation.notify');
     });
 
     /*
