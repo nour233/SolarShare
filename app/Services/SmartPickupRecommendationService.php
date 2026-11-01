@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 
 class SmartPickupRecommendationService
 {
+    private const DISTANCE_REFERENCE_KM = 100;
+
     private const WEIGHTS = [
         'distance' => 40,
         'capacity' => 35,
@@ -23,10 +25,10 @@ class SmartPickupRecommendationService
     /**
      * Rank eligible points with normalized, explainable factors.
      *
-     * Capacity score is the percentage of all appointment capacity still free.
-     * Distance is normalized against the farthest eligible point in this result
-     * set. Time score falls linearly from 100 at the requested time to 0 at a
-     * twelve-hour difference. Only supplied factors contribute their weights.
+     * Capacity score is the percentage of future appointment capacity still
+     * free. Distance score is max(0, 100 * (1 - km / 100)). Time score falls
+     * linearly from 100 at the requested time to 0 at a twelve-hour difference.
+     * Missing factors are removed and remaining weights are renormalized.
      *
      * @return list<array<string, mixed>>
      */
@@ -41,9 +43,13 @@ class SmartPickupRecommendationService
         $date = Carbon::parse($date->format('Y-m-d'), config('app.timezone'));
         $this->assertRentalDate($rental, $date);
 
+        $now = Carbon::now(config('app.timezone'));
         $points = PickupPoint::query()
             ->where('status', 'active')
-            ->with(['openingHours', 'closures' => fn ($query) => $query->whereDate('closure_date', $date)])
+            ->with([
+                'openingHours',
+                'closures' => fn ($query) => $query->whereDate('closure_date', $date),
+            ])
             ->orderBy('id')
             ->get();
         $capacityByPoint = $this->operations->utilizationForDate(
@@ -55,7 +61,6 @@ class SmartPickupRecommendationService
         $candidates = [];
         foreach ($points as $point) {
             $utilization = $capacityByPoint[$point->id];
-            $now = Carbon::now(config('app.timezone'));
             $futureSlots = array_map(function (array $slot) use ($date): array {
                 $slotDateTime = $date->copy()->setTimeFromTimeString($slot['start']);
                 $slot['remaining'] = max(0, $slot['capacity'] - $slot['reserved']);
@@ -94,6 +99,7 @@ class SmartPickupRecommendationService
                 'latitude' => $point->latitude,
                 'longitude' => $point->longitude,
                 'distance_km' => $distance === null ? null : round($distance, 2),
+                'distance_sort_km' => $distance,
                 'slots' => $slots,
                 'remaining_capacity' => $capacityRemaining,
                 'capacity_ratio' => $capacityTotal > 0 ? $capacityRemaining / $capacityTotal : 0,
@@ -110,18 +116,16 @@ class SmartPickupRecommendationService
             return [];
         }
 
-        $distances = array_values(array_filter(array_column($candidates, 'distance_km'), fn ($value) => $value !== null));
-        $maxDistance = $distances === [] ? null : max($distances);
-
         foreach ($candidates as &$candidate) {
             $factors = [
                 'capacity' => $candidate['capacity_ratio'] * 100,
             ];
 
             if ($candidate['distance_km'] !== null) {
-                $factors['distance'] = $maxDistance > 0
-                    ? (1 - ($candidate['distance_km'] / $maxDistance)) * 100
-                    : 100;
+                $factors['distance'] = max(
+                    0,
+                    (1 - ($candidate['distance_sort_km'] / self::DISTANCE_REFERENCE_KM)) * 100
+                );
             }
 
             if ($preferredTime !== null) {
@@ -147,7 +151,8 @@ class SmartPickupRecommendationService
             unset(
                 $candidate['capacity_ratio'],
                 $candidate['time_difference'],
-                $candidate['preferred_time']
+                $candidate['preferred_time'],
+                $candidate['distance_sort_km']
             );
         }
         unset($candidate);
@@ -169,6 +174,7 @@ class SmartPickupRecommendationService
         $lonDifference = deg2rad($lon2 - $lon1);
         $a = sin($latDifference / 2) ** 2
             + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lonDifference / 2) ** 2;
+        $a = min(1, max(0, $a));
 
         return $earthRadiusKm * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
@@ -181,7 +187,8 @@ class SmartPickupRecommendationService
             ]);
         }
 
-        if ($date->lt($rental->start_date->startOfDay()) || $date->gt($rental->end_date->startOfDay())) {
+        if ($date->toDateString() < $rental->start_date->toDateString()
+            || $date->toDateString() > $rental->end_date->toDateString()) {
             throw ValidationException::withMessages([
                 'date' => 'La date de retrait doit être comprise dans la période de location.',
             ]);

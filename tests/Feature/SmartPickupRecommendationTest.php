@@ -48,6 +48,7 @@ class SmartPickupRecommendationTest extends TestCase
 
         $this->assertSame([$near->id, $far->id], array_column($ranked, 'pickup_point_id'));
         $this->assertGreaterThan($ranked[1]['score'], $ranked[0]['score']);
+        $this->assertSame(100, $ranked[0]['score']);
         $this->assertGreaterThanOrEqual(0, $ranked[0]['score']);
         $this->assertLessThanOrEqual(100, $ranked[0]['score']);
         $this->assertArrayHasKey('distance', $ranked[0]['score_breakdown']);
@@ -112,6 +113,23 @@ class SmartPickupRecommendationTest extends TestCase
         $this->assertArrayNotHasKey('distance', $recommendation[0]['score_breakdown']);
     }
 
+    public function test_past_and_current_slots_are_not_recommended_for_today(): void
+    {
+        $rental = $this->rental();
+        $rental->update(['start_date' => '2026-11-01']);
+        $point = $this->point();
+        $point->openingHours()->create([
+            'day_of_week' => 7,
+            'opens_at' => '09:00',
+            'closes_at' => '11:00',
+        ]);
+        Carbon::setTestNow(Carbon::parse('2026-11-01 10:00:00'));
+
+        $recommendation = $this->recommendations()->recommend($rental, Carbon::parse('2026-11-01'));
+
+        $this->assertSame(['10:30'], array_column($recommendation[0]['slots'], 'start'));
+    }
+
     public function test_missing_gps_redistributes_weights_and_ties_are_deterministic(): void
     {
         $rental = $this->rental();
@@ -152,8 +170,10 @@ class SmartPickupRecommendationTest extends TestCase
     public function test_haversine_distance_uses_straight_line_distance_in_kilometers(): void
     {
         $distance = $this->recommendations()->distanceKilometers(36.8065, 10.1815, 36.8065, 10.1815);
+        $oneDegree = $this->recommendations()->distanceKilometers(0, 0, 0, 1);
 
         $this->assertSame(0.0, $distance);
+        $this->assertEqualsWithDelta(111.19, $oneDegree, 0.1);
     }
 
     private function recommendations(): SmartPickupRecommendationService
