@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Delivery extends Model
 {
@@ -30,5 +31,30 @@ class Delivery extends Model
     public function pickupPoint(): BelongsTo
     {
         return $this->belongsTo(PickupPoint::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(DeliveryStatusHistory::class)->orderBy('created_at');
+    }
+
+    public static function statusLabelFor(string $status): string
+    {
+        return [
+            'planned' => 'Planifiée',
+            'in_transit' => 'En transit',
+            'delivered' => 'Livrée',
+            'returned' => 'Retournée',
+        ][$status] ?? $status;
+    }
+
+    public static function statusBadgeClass(string $status): string
+    {
+        return [
+            'planned' => 'bg-secondary',
+            'in_transit' => 'bg-primary',
+            'delivered' => 'bg-success',
+            'returned' => 'bg-dark',
+        ][$status] ?? 'bg-secondary';
     }
 }

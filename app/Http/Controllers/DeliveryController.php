@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Delivery;
 use App\Models\PickupPoint;
 use App\Models\Rental;
+use App\Services\DeliveryBookingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -31,20 +32,23 @@ class DeliveryController extends Controller
         ));
     }
 
-    public function store(Request $request, Rental $rental)
+    public function store(Request $request, Rental $rental, DeliveryBookingService $booking)
     {
         $this->authorizeRental($rental);
 
         $validated = $this->validateDelivery($request);
 
-        if ($validated['type'] === 'home_delivery') {
-            $validated['pickup_point_id'] = null;
+        if ($validated['type'] === 'pickup') {
+            $booking->bookPickup(
+                $rental,
+                (int) $validated['pickup_point_id'],
+                $validated['scheduled_date'],
+                $validated['scheduled_time'],
+                $request->user()
+            );
+        } else {
+            $booking->saveHomeDelivery($rental, $validated);
         }
-
-        $validated['rental_id'] = $rental->id;
-        $validated['status'] = 'planned';
-
-        Delivery::create($validated);
 
         return redirect()
             ->route('rentals.show', $rental)
@@ -68,17 +72,30 @@ class DeliveryController extends Controller
         ));
     }
 
-    public function update(Request $request, Delivery $delivery)
+    public function update(Request $request, Delivery $delivery, DeliveryBookingService $booking)
     {
         $this->authorizeDelivery($delivery);
 
         $validated = $this->validateDelivery($request);
 
-        if ($validated['type'] === 'home_delivery') {
-            $validated['pickup_point_id'] = null;
-        }
+        if ($validated['type'] === 'pickup') {
+            if ($delivery->type !== 'pickup') {
+                return back()->withInput()->withErrors([
+                    'type' => 'Une livraison à domicile ne peut pas être convertie implicitement en retrait.',
+                ]);
+            }
 
-        $delivery->update($validated);
+            $booking->bookPickup(
+                $delivery->rental,
+                (int) $validated['pickup_point_id'],
+                $validated['scheduled_date'],
+                $validated['scheduled_time'],
+                $request->user(),
+                $delivery
+            );
+        } else {
+            $booking->saveHomeDelivery($delivery->rental, $validated, $delivery);
+        }
 
         return redirect()
             ->route('rentals.show', $delivery->rental)

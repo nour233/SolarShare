@@ -61,10 +61,15 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex gap-2 mt-3 flex-wrap">
                 <a href="{{ route('rentals.show', $rental) }}" class="btn btn-sm btn-outline-success">
                     Voir le détail
                 </a>
+                @if(! in_array($rental->status, ['returned', 'cancelled'], true) && $rental->end_date->greaterThanOrEqualTo(today()))
+                    <a href="{{ route('rentals.smart-pickup', $rental) }}" class="btn btn-sm text-white" style="background:#278658">
+                        <i class="fa fa-star me-1"></i>Trouver le meilleur point de retrait
+                    </a>
+                @endif
                 @if($rental->isPending())
                 <form method="POST" action="{{ route('rentals.cancel', $rental) }}"
                       onsubmit="return confirm('Annuler cette réservation ?')" class="m-0">

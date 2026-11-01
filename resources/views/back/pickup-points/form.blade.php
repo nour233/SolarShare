@@ -9,6 +9,19 @@
 
 @section('content')
 
+@php
+    $scheduleDays = [
+        1 => 'Lundi',
+        2 => 'Mardi',
+        3 => 'Mercredi',
+        4 => 'Jeudi',
+        5 => 'Vendredi',
+        6 => 'Samedi',
+        7 => 'Dimanche',
+    ];
+    $storedOpeningHours = $pickupPoint->openingHours->groupBy('day_of_week');
+@endphp
+
 {{-- Leaflet CSS --}}
 <link
     rel="stylesheet"
@@ -413,14 +426,12 @@
             </div>
 
 
-            {{-- ===================================================== --}}
-            {{-- OPENING HOURS --}}
-            {{-- ===================================================== --}}
+            {{-- Legacy free-text value is retained for existing records. --}}
 
-            <div class="col-md-6">
+            <div class="col-12">
 
                 <label class="form-label fw-semibold">
-                    Horaires d'ouverture *
+                    Ancien champ horaires *
                 </label>
 
                 <input
@@ -430,6 +441,9 @@
                     value="{{ old('opening_hours', $pickupPoint->opening_hours) }}"
                     placeholder="Ex : Lun-Sam 08:00 - 18:00"
                 >
+                <small class="text-muted">
+                    Conservé pour compatibilité avec les anciennes données. Les horaires structurés ci-dessous sont utilisés pour les opérations.
+                </small>
 
                 @error('opening_hours')
 
@@ -443,6 +457,115 @@
 
                 @enderror
 
+            </div>
+
+            <div class="col-12">
+                <div class="surface p-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <span class="section-kicker">HORAIRES STRUCTURÉS</span>
+                            <h5 class="mt-1 mb-1">Planning hebdomadaire</h5>
+                            <p class="text-muted mb-0">Ajoutez une ou plusieurs plages horaires par jour. Une journée sans plages doit être marquée comme fermée.</p>
+                        </div>
+                        <span class="badge bg-secondary">Durée de créneau configurable</span>
+                    </div>
+
+                    @foreach($scheduleDays as $day => $dayLabel)
+                        @php
+                            $savedIntervals = $storedOpeningHours->get($day, collect())
+                                ->map(fn ($hour) => [
+                                    'opens_at' => substr($hour->opens_at, 0, 5),
+                                    'closes_at' => substr($hour->closes_at, 0, 5),
+                                ])->values()->all();
+                            $oldDay = old("weekly_schedule.$day");
+                            $intervals = is_array($oldDay) && is_array($oldDay['intervals'] ?? [])
+                                ? ($oldDay['intervals'] ?? [])
+                                : $savedIntervals;
+                            $intervals = is_array($intervals) ? $intervals : [];
+                            $isClosed = is_array($oldDay)
+                                ? (bool) ($oldDay['closed'] ?? false)
+                                : empty($savedIntervals);
+                        @endphp
+
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="row align-items-center g-2">
+                                <div class="col-md-2">
+                                    <strong>{{ $dayLabel }}</strong>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="hidden" name="weekly_schedule[{{ $day }}][closed]" value="0">
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input schedule-closed-toggle"
+                                            type="checkbox"
+                                            name="weekly_schedule[{{ $day }}][closed]"
+                                            id="closed-{{ $day }}"
+                                            value="1"
+                                            data-day="{{ $day }}"
+                                            @checked($isClosed)
+                                        >
+                                        <label class="form-check-label" for="closed-{{ $day }}">Fermé</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-7 text-md-end">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-success add-interval"
+                                        data-day="{{ $day }}"
+                                    >
+                                        <i class="fa fa-plus me-1"></i>Ajouter une plage
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="schedule-intervals mt-3" id="intervals-{{ $day }}" data-day="{{ $day }}" data-next-index="{{ count($intervals) }}">
+                                @foreach($intervals as $intervalIndex => $interval)
+                                    <div class="row g-2 align-items-center mb-2 schedule-interval">
+                                        <div class="col-md-5">
+                                            <label class="form-label small">Ouverture</label>
+                                            <input
+                                                type="time"
+                                                class="form-control"
+                                                name="weekly_schedule[{{ $day }}][intervals][{{ $intervalIndex }}][opens_at]"
+                                                value="{{ $interval['opens_at'] ?? '' }}"
+                                                @disabled($isClosed)
+                                            >
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label small">Fermeture</label>
+                                            <input
+                                                type="time"
+                                                class="form-control"
+                                                name="weekly_schedule[{{ $day }}][intervals][{{ $intervalIndex }}][closes_at]"
+                                                value="{{ $interval['closes_at'] ?? '' }}"
+                                                @disabled($isClosed)
+                                            >
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-interval" @disabled($isClosed)>
+                                                <i class="fa fa-trash"></i>
+                                                <span class="visually-hidden">Supprimer la plage</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @if($errors->has("weekly_schedule.$day.intervals"))
+                                <div class="text-danger small mt-2">
+                                    {{ $errors->first("weekly_schedule.$day.intervals") }}
+                                </div>
+                            @endif
+                            @foreach(($intervals ?? []) as $intervalIndex => $interval)
+                                @error("weekly_schedule.$day.intervals.$intervalIndex.opens_at")
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                                @error("weekly_schedule.$day.intervals.$intervalIndex.closes_at")
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
 
@@ -472,6 +595,24 @@
 
                         {{ $message }}
 
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Durée du créneau (minutes) *</label>
+                        <input
+                            type="number"
+                            min="15"
+                            max="120"
+                            step="1"
+                            name="slot_duration_minutes"
+                            class="form-control @error('slot_duration_minutes') is-invalid @enderror"
+                            value="{{ old('slot_duration_minutes', $pickupPoint->slot_duration_minutes ?? 30) }}"
+                            required
+                        >
+                        @error('slot_duration_minutes')
+                            <div class="field-error">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Par défaut : 30 minutes. La capacité s’applique à chaque créneau.</small>
                     </div>
 
                 @enderror
@@ -581,6 +722,51 @@
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function updateDay(day) {
+        const closed = document.getElementById('closed-' + day).checked;
+        const container = document.getElementById('intervals-' + day);
+        container.querySelectorAll('input, button').forEach(function (element) {
+            element.disabled = closed;
+        });
+        document.querySelector('.add-interval[data-day="' + day + '"]').disabled = closed;
+    }
+
+    document.querySelectorAll('.schedule-closed-toggle').forEach(function (toggle) {
+        toggle.addEventListener('change', function () {
+            updateDay(this.dataset.day);
+        });
+        updateDay(toggle.dataset.day);
+    });
+
+    document.querySelectorAll('.add-interval').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const day = this.dataset.day;
+            const container = document.getElementById('intervals-' + day);
+            const index = Number(container.dataset.nextIndex);
+            container.dataset.nextIndex = String(index + 1);
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-center mb-2 schedule-interval';
+            row.innerHTML =
+                '<div class="col-md-5"><label class="form-label small">Ouverture</label>' +
+                '<input type="time" required class="form-control" name="weekly_schedule[' + day + '][intervals][' + index + '][opens_at]"></div>' +
+                '<div class="col-md-5"><label class="form-label small">Fermeture</label>' +
+                '<input type="time" required class="form-control" name="weekly_schedule[' + day + '][intervals][' + index + '][closes_at]"></div>' +
+                '<div class="col-md-2 text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-interval">' +
+                '<i class="fa fa-trash"></i><span class="visually-hidden">Supprimer la plage</span></button></div>';
+            container.appendChild(row);
+        });
+    });
+
+    document.addEventListener('click', function (event) {
+        const button = event.target.closest('.remove-interval');
+        if (button) {
+            button.closest('.schedule-interval').remove();
+        }
+    });
+});
+</script>
 
 {{-- Leaflet JavaScript --}}
 <script

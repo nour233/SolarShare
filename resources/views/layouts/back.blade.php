@@ -306,11 +306,18 @@
             {{-- ================================================= --}}
 
             <a
-                class="{{ request()->routeIs('admin.pickup-points.*') ? 'active' : '' }}"
+                class="{{ request()->routeIs('admin.pickup-points.index', 'admin.pickup-points.create', 'admin.pickup-points.store', 'admin.pickup-points.show', 'admin.pickup-points.edit', 'admin.pickup-points.update') ? 'active' : '' }}"
                 href="{{ route('admin.pickup-points.index') }}"
             >
                 <i class="fa fa-map-marker-alt me-2"></i>
                 Points de retrait
+            </a>
+            <a
+                class="{{ request()->routeIs('admin.pickup-points.capacity') ? 'active' : '' }}"
+                href="{{ route('admin.pickup-points.capacity') }}"
+            >
+                <i class="fa fa-chart-bar me-2"></i>
+                Capacité des points
             </a>
 
 
