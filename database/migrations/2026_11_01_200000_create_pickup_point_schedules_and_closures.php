@@ -36,7 +36,10 @@ return new class extends Migration
                 $table->time('closes_at');
                 $table->timestamps();
 
-                $table->index(['pickup_point_id', 'day_of_week', 'opens_at']);
+                $table->index(
+    ['pickup_point_id', 'day_of_week', 'opens_at'],
+    'pickup_hours_lookup_idx'
+);
             });
         }
 
