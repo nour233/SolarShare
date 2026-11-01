@@ -7,6 +7,8 @@ use App\Http\Controllers\IncidentController as FrontIncidentController;
 use App\Models\Equipment;
 use App\Models\Incident;
 use App\Models\User;
+use App\Services\IncidentDiagnosisService;
+use App\Services\RepairTimePredictor;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -75,6 +77,26 @@ class IncidentController extends Controller
         $incident->update($data);
 
         return back()->with('status', 'Statut mis à jour : '.$incident->statusLabel().'.');
+    }
+
+    /** Runs the AI diagnosis and the repair time prediction again (e.g. after the photos changed). */
+    public function diagnose(Incident $incident, IncidentDiagnosisService $diagnosis, RepairTimePredictor $predictor)
+    {
+        $incident->update(['ai_diagnosis' => $diagnosis->diagnose($incident)]);
+        $incident->update(['repair_estimate' => $predictor->predict($incident)]);
+
+        return back()->with('status', 'Diagnostic IA et délai de réparation mis à jour.');
+    }
+
+    /** Accepts the severity suggested by the diagnosis. */
+    public function applySeverity(Incident $incident, RepairTimePredictor $predictor)
+    {
+        $severity = $incident->ai_diagnosis['severity'] ?? null;
+        abort_unless(array_key_exists((string) $severity, Incident::SEVERITIES), 404);
+        $incident->update(['severity' => $severity]);
+        $incident->update(['repair_estimate' => $predictor->predict($incident)]);
+
+        return back()->with('status', 'Gravité mise à jour : '.$incident->severityLabel().'.');
     }
 
     public function destroy(Incident $incident)

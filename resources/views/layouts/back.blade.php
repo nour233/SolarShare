@@ -307,7 +307,7 @@
 
             {{-- Maintenance --}}
             <a
-                class="{{ request()->routeIs('admin.maintenances.*') ? 'active' : '' }}"
+                class="{{ request()->routeIs('admin.maintenances.*', 'admin.repair-model') ? 'active' : '' }}"
                 href="{{ route('admin.maintenances.index') }}"
             >
                 <i class="fa fa-tools me-2"></i>

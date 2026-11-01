@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Equipment;
+use App\Models\Incident;
 use App\Models\Maintenance;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -26,12 +27,34 @@ class MaintenanceController extends Controller
 
     public function create(Request $request)
     {
-        return $this->form(new Maintenance(['equipment_id' => $request->integer('equipment') ?: null, 'date' => today(), 'cost' => 0]));
+        $maintenance = new Maintenance(['equipment_id' => $request->integer('equipment') ?: null, 'date' => today(), 'cost' => 0]);
+        $incident = Incident::find($request->integer('incident'));
+
+        // Pre-filled from the AI diagnosis of an incident.
+        if ($diagnosis = $incident?->ai_diagnosis) {
+            $maintenance->fill([
+                'equipment_id' => $incident->equipment_id,
+                'type' => $diagnosis['action'],
+                'cost' => round(($diagnosis['cost_min'] + $diagnosis['cost_max']) / 2, 2),
+                'notes' => 'Incident #'.$incident->id.' — '.$diagnosis['cause'],
+            ]);
+        }
+
+        return $this->form($maintenance, $incident);
     }
 
     public function store(Request $request)
     {
-        Maintenance::create($this->data($request));
+        $incident = Incident::find($request->integer('incident_id'));
+        Maintenance::create($this->data($request) + ['incident_id' => $incident?->id]);
+
+        if ($incident) {
+            if ($incident->status === 'ouvert') {
+                $incident->update(['status' => 'en_cours']);
+            }
+
+            return redirect()->route('admin.incidents.show', $incident)->with('status', 'Maintenance planifiée, incident passé « En cours ».');
+        }
 
         return redirect()->route('admin.maintenances.index')->with('status', 'Maintenance enregistrée.');
     }
@@ -55,11 +78,12 @@ class MaintenanceController extends Controller
         return back()->with('status', 'Maintenance supprimée.');
     }
 
-    private function form(Maintenance $maintenance)
+    private function form(Maintenance $maintenance, ?Incident $incident = null)
     {
         return view('back.maintenances.form', [
             'maintenance' => $maintenance,
             'equipments' => Equipment::orderBy('title')->get(['id', 'title']),
+            'incident' => $incident,
         ]);
     }
 
@@ -70,6 +94,7 @@ class MaintenanceController extends Controller
             'type' => ['required', Rule::in(array_keys(Maintenance::TYPES))],
             'date' => ['required', 'date', 'before_or_equal:today'],
             'cost' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'duration_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ], [
             'equipment_id.required' => 'Choisissez un équipement.',
@@ -83,9 +108,12 @@ class MaintenanceController extends Controller
             'cost.numeric' => 'Le coût doit être un nombre.',
             'cost.min' => 'Le coût ne peut pas être négatif.',
             'cost.max' => 'Le coût est trop élevé.',
+            'duration_days.integer' => 'La durée doit être un nombre entier de jours.',
+            'duration_days.min' => 'La durée doit être d’au moins 1 jour.',
+            'duration_days.max' => 'La durée ne peut pas dépasser 365 jours.',
             'notes.max' => 'Les notes ne peuvent pas dépasser 2 000 caractères.',
         ]);
 
-        return $data + ['notes' => null]; // an empty notes field clears the old notes
+        return $data + ['notes' => null, 'duration_days' => null]; // empty fields clear the old values
     }
 }
