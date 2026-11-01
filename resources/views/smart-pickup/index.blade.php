@@ -70,7 +70,7 @@
                         </div>
                     @endif
 
-                    <div class="col-md-4">
+                    <div class="{{ $isAdmin ? 'col-md-4' : 'col-md-6' }}">
                         <label for="date" class="form-label fw-semibold">Date de retrait</label>
                         <input
                             class="form-control"
@@ -83,10 +83,41 @@
                             required
                         >
                     </div>
+                    @if($isAdmin)
                     <div class="col-md-4">
                         <label for="preferred_time" class="form-label fw-semibold">Heure souhaitée <span class="text-muted fw-normal">(facultative)</span></label>
                         <input class="form-control" id="preferred_time" type="time" name="preferred_time" value="{{ $preferredTime }}">
                     </div>
+                    @else
+                    <div class="col-md-6">
+                        <label for="favorite_pickup_point_id" class="form-label fw-semibold">Point favori à privilégier</label>
+                        <select class="form-select" id="favorite_pickup_point_id" name="favorite_pickup_point_id">
+                            <option value="">Aucun favori pour cette recherche</option>
+                            @foreach($pickupPoints as $point)
+                                <option value="{{ $point->id }}" @selected((string) $preferences['favorite_pickup_point_id'] === (string) $point->id)>
+                                    {{ $point->name }} — {{ $point->city }}{{ $point->status === 'active' ? '' : ' — indisponible' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="preferred_time" class="form-label fw-semibold">Heure souhaitée cette fois-ci <span class="text-muted fw-normal">(facultative)</span></label>
+                        <input class="form-control" id="preferred_time" type="time" name="preferred_time" value="{{ $preferredTime }}">
+                        <div class="form-text">Si renseignée, cette heure remplace votre plage préférée pour le classement de cette recherche.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="preferred_start_time" class="form-label fw-semibold">Début de plage préférée</label>
+                        <input class="form-control" id="preferred_start_time" type="time" name="preferred_start_time" value="{{ $preferences['preferred_start_time'] }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="preferred_end_time" class="form-label fw-semibold">Fin de plage préférée</label>
+                        <input class="form-control" id="preferred_end_time" type="time" name="preferred_end_time" value="{{ $preferences['preferred_end_time'] }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="preferred_city" class="form-label fw-semibold">Ville préférée</label>
+                        <input class="form-control" id="preferred_city" type="text" name="preferred_city" maxlength="100" value="{{ $preferences['preferred_city'] }}" placeholder="Ex. Tunis">
+                    </div>
+                    @endif
                     <div class="col-md-4">
                         <label for="latitude" class="form-label fw-semibold">Latitude <span class="text-muted fw-normal">(facultative)</span></label>
                         <input class="form-control" id="latitude" type="number" step="any" min="-90" max="90" name="latitude" value="{{ $latitude }}" placeholder="36.8065">
@@ -107,6 +138,42 @@
         </div>
     </div>
 
+    @if(!$isAdmin && $personalization['enabled'])
+        <div class="alert {{ $personalization['favorite_available'] === false ? 'alert-warning' : 'alert-success' }} border-0 shadow-sm mb-4" role="status">
+            <div class="d-flex flex-wrap justify-content-between gap-3">
+                <div>
+                    <strong>Vos préférences ont été prises en compte.</strong>
+                    <div class="small mt-1">
+                        @if($personalization['favorite_name'])
+                            Point favori : {{ $personalization['favorite_name'] }}.
+                            @if($personalization['favorite_available'] === true)
+                                Un créneau réservable est disponible pour cette date.
+                            @elseif($personalization['favorite_available'] === false)
+                                Ce point n’a pas de créneau réservable parmi les résultats pour cette date.
+                            @else
+                                Choisissez une date pour vérifier sa disponibilité.
+                            @endif
+                        @else
+                            Aucun point favori n’est sélectionné pour cette recherche.
+                        @endif
+                        @if($personalization['preferred_start_time'] && $personalization['preferred_end_time'])
+                            Plage horaire : {{ $personalization['preferred_start_time'] }}–{{ $personalization['preferred_end_time'] }}.
+                        @endif
+                        @if($personalization['preferred_city'])
+                            Ville préférée : {{ $personalization['preferred_city'] }}.
+                        @endif
+                    </div>
+                </div>
+                @if($personalization['alternative_name'])
+                    <div class="small">
+                        <strong>Alternative valide :</strong> {{ $personalization['alternative_name'] }}.
+                        Elle figure parmi les points ayant un créneau conforme aux règles de disponibilité et de capacité.
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
     @if($rental)
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
             <div>
@@ -115,6 +182,8 @@
                     {{ $selectedDate ? \Carbon\Carbon::parse($selectedDate)->translatedFormat('l d F Y') : 'Choisissez une date pour rechercher' }}
                     @if($preferredTime)
                         · Heure souhaitée {{ $preferredTime }}
+                    @elseif(!$isAdmin && $preferences['preferred_start_time'] && $preferences['preferred_end_time'])
+                        · Plage préférée {{ $preferences['preferred_start_time'] }}–{{ $preferences['preferred_end_time'] }}
                     @endif
                 </p>
             </div>
@@ -167,6 +236,7 @@
                                                 'distance' => 'Distance',
                                                 'capacity' => 'Capacité',
                                                 'time' => 'Horaire',
+                                                'personalization' => 'Préférences',
                                             ];
                                         @endphp
                                         {{ $factorLabels[$factor] ?? $factor }} :
@@ -190,6 +260,10 @@
                                             'preferred_time' => $preferredTime,
                                             'latitude' => $latitude,
                                             'longitude' => $longitude,
+                                            'favorite_pickup_point_id' => $preferences['favorite_pickup_point_id'] ?? null,
+                                            'preferred_city' => $preferences['preferred_city'] ?? null,
+                                            'preferred_start_time' => $preferences['preferred_start_time'] ?? null,
+                                            'preferred_end_time' => $preferences['preferred_end_time'] ?? null,
                                         ]) }}"
                                     >
                                         <i class="far fa-clock me-1"></i>{{ $slot['start'] }}–{{ $slot['end'] }}

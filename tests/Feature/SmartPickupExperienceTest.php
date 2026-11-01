@@ -74,6 +74,80 @@ class SmartPickupExperienceTest extends TestCase
             ->assertSee('09:30');
     }
 
+    public function test_saved_logistics_preferences_prefill_and_personalize_smartpickup(): void
+    {
+        $rental = $this->rental();
+        $point = $this->point(['name' => 'Mon point favori']);
+        $rental->renter->logisticsPreference()->create([
+            'preferred_pickup_point_id' => $point->id,
+            'preferred_start_time' => '09:00',
+            'preferred_end_time' => '10:00',
+            'preferred_city' => 'Tunis',
+        ]);
+
+        $this->actingAs($rental->renter)
+            ->get(route('rentals.smart-pickup', [
+                'rental' => $rental,
+                'date' => '2026-11-02',
+            ]))
+            ->assertOk()
+            ->assertSee('Vos préférences ont été prises en compte.')
+            ->assertSee('Mon point favori')
+            ->assertSee('Un créneau réservable est disponible pour cette date.')
+            ->assertSee('id="preferred_start_time" type="time" name="preferred_start_time" value="09:00"', false)
+            ->assertSee('id="preferred_end_time" type="time" name="preferred_end_time" value="10:00"', false)
+            ->assertSee('name="preferred_city" maxlength="100" value="Tunis"', false)
+            ->assertSee('Votre point de retrait favori est disponible et a été favorisé dans le classement.');
+    }
+
+    public function test_unavailable_favorite_is_explained_and_personalized_booking_revalidates(): void
+    {
+        $rental = $this->rental();
+        $favorite = $this->point(['name' => 'Favori fermé']);
+        $alternative = $this->point(['name' => 'Alternative ouverte']);
+        $rental->renter->logisticsPreference()->create([
+            'preferred_pickup_point_id' => $favorite->id,
+            'preferred_start_time' => '09:00',
+            'preferred_end_time' => '10:00',
+            'preferred_city' => 'Tunis',
+        ]);
+        $favorite->closures()->create([
+            'closure_date' => '2026-11-02',
+            'reason' => 'Fermeture exceptionnelle',
+        ]);
+
+        $this->actingAs($rental->renter)
+            ->get(route('rentals.smart-pickup', [
+                'rental' => $rental,
+                'date' => '2026-11-02',
+            ]))
+            ->assertOk()
+            ->assertSee('Favori fermé')
+            ->assertSee('Ce point n’a pas de créneau réservable parmi les résultats pour cette date.')
+            ->assertSee('Alternative ouverte.');
+
+        $selection = [
+            'pickup_point_id' => $alternative->id,
+            'date' => '2026-11-02',
+            'scheduled_time' => '09:00',
+            'favorite_pickup_point_id' => $favorite->id,
+            'preferred_city' => 'Tunis',
+            'preferred_start_time' => '09:00',
+            'preferred_end_time' => '10:00',
+        ];
+        $this->get(route('rentals.smart-pickup.confirm', ['rental' => $rental] + $selection))
+            ->assertOk()
+            ->assertSee('Vérifiez votre rendez-vous');
+
+        $alternative->closures()->create([
+            'closure_date' => '2026-11-02',
+            'reason' => 'Fermeture après affichage de la confirmation',
+        ]);
+        $this->post(route('rentals.smart-pickup.book', $rental), $selection + ['confirmed' => '1'])
+            ->assertSessionHasErrors('scheduled_time');
+        $this->assertDatabaseCount('deliveries', 0);
+    }
+
     public function test_customer_smartpickup_routes_prevent_idor_and_require_authentication(): void
     {
         $ownerRental = $this->rental();

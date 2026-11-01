@@ -55,6 +55,52 @@ class SmartPickupRecommendationTest extends TestCase
         $this->assertContains('Plusieurs créneaux disponibles.', $ranked[0]['explanation']);
     }
 
+    public function test_favorite_point_is_a_soft_preference_and_closed_favorites_are_excluded(): void
+    {
+        $rental = $this->rental();
+        $alternative = $this->point(['name' => 'Alternative', 'city' => 'Tunis']);
+        $favorite = $this->point(['name' => 'Favori', 'city' => 'Sousse']);
+        $this->weekdaySchedule($alternative, '09:00', '10:00');
+        $this->weekdaySchedule($favorite, '09:00', '10:00');
+
+        $ranked = $this->recommendations()->recommend(
+            $rental,
+            Carbon::parse('2026-11-02'),
+            favoritePickupPointId: $favorite->id,
+            preferredCity: 'Tunis',
+            preferredStartTime: '09:00',
+            preferredEndTime: '10:00'
+        );
+
+        $this->assertSame([$favorite->id, $alternative->id], array_column($ranked, 'pickup_point_id'));
+        $this->assertArrayHasKey('personalization', $ranked[0]['score_breakdown']);
+        $this->assertSame(100.0, $ranked[0]['score_breakdown']['personalization']['score']);
+        $this->assertContains(
+            'Votre point de retrait favori est disponible et a été favorisé dans le classement.',
+            $ranked[0]['explanation']
+        );
+        $this->assertContains(
+            'Les créneaux proches de votre plage préférée (09:00–10:00) sont favorisés.',
+            $ranked[0]['explanation']
+        );
+
+        $favorite->closures()->create([
+            'closure_date' => '2026-11-02',
+            'reason' => 'Fermeture exceptionnelle',
+        ]);
+        $rankedWithClosure = $this->recommendations()->recommend(
+            $rental,
+            Carbon::parse('2026-11-02'),
+            favoritePickupPointId: $favorite->id,
+            preferredCity: 'Tunis',
+            preferredStartTime: '09:00',
+            preferredEndTime: '10:00'
+        );
+
+        $this->assertSame([$alternative->id], array_column($rankedWithClosure, 'pickup_point_id'));
+        $this->assertContains('Ce point correspond à votre ville préférée.', $rankedWithClosure[0]['explanation']);
+    }
+
     public function test_inactive_closed_weekday_and_exceptionally_closed_points_are_excluded(): void
     {
         $rental = $this->rental();

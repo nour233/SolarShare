@@ -16,6 +16,7 @@ class SmartPickupRecommendationService
         'distance' => 40,
         'capacity' => 35,
         'time' => 25,
+        'personalization' => 20,
     ];
 
     public function __construct(
@@ -28,6 +29,8 @@ class SmartPickupRecommendationService
      * Capacity score is the percentage of future appointment capacity still
      * free. Distance score is max(0, 100 * (1 - km / 100)). Time score falls
      * linearly from 100 at the requested time to 0 at a twelve-hour difference.
+     * A favorite point or exact city match is a soft ranking factor applied only
+     * to points that already have eligible slots; it never changes availability.
      * Missing factors are removed and remaining weights are renormalized.
      *
      * @return list<array<string, mixed>>
@@ -37,7 +40,11 @@ class SmartPickupRecommendationService
         CarbonInterface $date,
         ?string $preferredTime = null,
         ?float $latitude = null,
-        ?float $longitude = null
+        ?float $longitude = null,
+        ?int $favoritePickupPointId = null,
+        ?string $preferredCity = null,
+        ?string $preferredStartTime = null,
+        ?string $preferredEndTime = null
     ): array {
         $this->validateCoordinates($latitude, $longitude);
         $date = Carbon::parse($date->format('Y-m-d'), config('app.timezone'));
@@ -90,6 +97,26 @@ class SmartPickupRecommendationService
                     fn (array $slot) => abs($this->minutes($slot['start']) - $this->minutes($preferredTime)),
                     $slots
                 ));
+            if ($preferredTime === null && $preferredStartTime !== null && $preferredEndTime !== null) {
+                $windowStart = $this->minutes($preferredStartTime);
+                $windowEnd = $this->minutes($preferredEndTime);
+                $timeDifference = min(array_map(function (array $slot) use ($windowStart, $windowEnd): int {
+                    $slotStart = $this->minutes($slot['start']);
+                    $slotEnd = $this->minutes($slot['end']);
+
+                    if ($slotStart < $windowEnd && $slotEnd > $windowStart) {
+                        return 0;
+                    }
+
+                    return $slotEnd <= $windowStart
+                        ? $windowStart - $slotEnd
+                        : $slotStart - $windowEnd;
+                }, $slots));
+            }
+            $favoriteMatch = $favoritePickupPointId !== null
+                && (int) $point->id === $favoritePickupPointId;
+            $cityMatch = filled($preferredCity)
+                && mb_strtolower(trim($point->city)) === mb_strtolower(trim($preferredCity));
 
             $candidates[] = [
                 'pickup_point_id' => $point->id,
@@ -105,6 +132,10 @@ class SmartPickupRecommendationService
                 'capacity_ratio' => $capacityTotal > 0 ? $capacityRemaining / $capacityTotal : 0,
                 'time_difference' => $timeDifference,
                 'preferred_time' => $preferredTime,
+                'preferred_start_time' => $preferredStartTime,
+                'preferred_end_time' => $preferredEndTime,
+                'favorite_match' => $favoriteMatch,
+                'city_match' => $cityMatch,
                 'score' => 0,
                 'score_breakdown' => [],
                 'explanation' => [],
@@ -128,8 +159,13 @@ class SmartPickupRecommendationService
                 );
             }
 
-            if ($preferredTime !== null) {
+            if ($preferredTime !== null || ($preferredStartTime !== null && $preferredEndTime !== null)) {
                 $factors['time'] = max(0, (1 - ($candidate['time_difference'] / 720)) * 100);
+            }
+            if ($favoritePickupPointId !== null || filled($preferredCity)) {
+                $factors['personalization'] = $candidate['favorite_match']
+                    ? 100
+                    : ($candidate['city_match'] ? 70 : 0);
             }
 
             $activeWeight = array_sum(array_intersect_key(self::WEIGHTS, $factors));
@@ -152,6 +188,10 @@ class SmartPickupRecommendationService
                 $candidate['capacity_ratio'],
                 $candidate['time_difference'],
                 $candidate['preferred_time'],
+                $candidate['preferred_start_time'],
+                $candidate['preferred_end_time'],
+                $candidate['favorite_match'],
+                $candidate['city_match'],
                 $candidate['distance_sort_km']
             );
         }
@@ -228,6 +268,13 @@ class SmartPickupRecommendationService
                 ->sortBy(fn (array $slot) => abs($this->minutes($slot['start']) - $this->minutes($candidate['preferred_time'])))
                 ->first();
             $explanations[] = 'Créneau le plus proche de votre heure souhaitée : '.($closest['start'] ?? 'non déterminé').'.';
+        } elseif ($candidate['preferred_start_time'] !== null && $candidate['preferred_end_time'] !== null) {
+            $explanations[] = 'Les créneaux proches de votre plage préférée ('.$candidate['preferred_start_time'].'–'.$candidate['preferred_end_time'].') sont favorisés.';
+        }
+        if ($candidate['favorite_match']) {
+            $explanations[] = 'Votre point de retrait favori est disponible et a été favorisé dans le classement.';
+        } elseif ($candidate['city_match']) {
+            $explanations[] = 'Ce point correspond à votre ville préférée.';
         }
 
         return $explanations;
