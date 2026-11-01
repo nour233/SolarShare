@@ -448,83 +448,23 @@
         </div>
 
 
-        {{-- STATUS --}}
-
         <div class="col-md-6">
-
-            <label class="form-label fw-semibold">
-                Statut *
-            </label>
-
-            <select
-                name="status"
-                class="form-select @error('status') is-invalid @enderror"
-            >
-
-                <option value="">
-                    -- Choisir --
-                </option>
-
-                <option
-                    value="planned"
-                    @selected(
-                        old(
-                            'status',
-                            $delivery->status ?? 'planned'
-                        ) === 'planned'
-                    )
-                >
-                    Planifiée
-                </option>
-
-                <option
-                    value="in_transit"
-                    @selected(
-                        old(
-                            'status',
-                            $delivery->status
-                        ) === 'in_transit'
-                    )
-                >
-                    En transit
-                </option>
-
-                <option
-                    value="delivered"
-                    @selected(
-                        old(
-                            'status',
-                            $delivery->status
-                        ) === 'delivered'
-                    )
-                >
-                    Livrée
-                </option>
-
-                <option
-                    value="returned"
-                    @selected(
-                        old(
-                            'status',
-                            $delivery->status
-                        ) === 'returned'
-                    )
-                >
-                    Retournée
-                </option>
-
-            </select>
-
-
-            @error('status')
-
-                <div class="field-error">
-                    <i class="fa fa-exclamation-circle me-1"></i>
-                    {{ $message }}
-                </div>
-
-            @enderror
-
+            <label class="form-label fw-semibold">Statut</label>
+            <div class="form-control bg-light">
+                @if($delivery->exists)
+                    <span class="badge {{ \App\Models\Delivery::statusBadgeClass($delivery->status) }}">
+                        {{ \App\Models\Delivery::statusLabelFor($delivery->status) }}
+                    </span>
+                    <small class="text-muted ms-2">
+                        Le statut se met à jour depuis la page de suivi.
+                    </small>
+                @else
+                    <span class="badge bg-secondary">Planifiée</span>
+                    <small class="text-muted ms-2">
+                        Une nouvelle livraison commence avec le statut planifié.
+                    </small>
+                @endif
+            </div>
         </div>
 
     </div>

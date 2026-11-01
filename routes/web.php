@@ -479,6 +479,11 @@ Route::middleware(['auth', 'admin'])
             \App\Http\Controllers\Admin\DeliveryController::class
         )->names('admin.deliveries');
 
+        Route::patch(
+            'deliveries/{delivery}/status',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'updateStatus']
+        )->name('admin.deliveries.status');
+
 
         /*
         |--------------------------------------------------------------------------

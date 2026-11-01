@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\PickupPoint;
 use App\Models\Rental;
+use App\Services\DeliveryStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -129,18 +130,47 @@ class DeliveryController extends Controller
     }
 
 
-    public function show(Delivery $delivery)
+    public function show(Delivery $delivery, DeliveryStatusService $statusService)
     {
         $delivery->load([
             'rental.equipment',
             'rental.renter',
             'pickupPoint',
+            'statusHistories.user',
         ]);
+
+        $allowedNextStatuses = $statusService->allowedNextStatuses($delivery);
+        $lastStatusUpdate = $delivery->statusHistories->last()?->created_at ?? $delivery->created_at;
 
         return view(
             'back.deliveries.show',
-            compact('delivery')
+            compact('delivery', 'allowedNextStatuses', 'lastStatusUpdate')
         );
+    }
+
+    public function updateStatus(
+        Request $request,
+        Delivery $delivery,
+        DeliveryStatusService $statusService
+    ) {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['planned', 'in_transit', 'delivered', 'returned'])],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $changed = $statusService->transition(
+            $delivery,
+            $validated['status'],
+            $request->user(),
+            $validated['comment'] ?? null
+        );
+
+        return redirect()
+            ->route('admin.deliveries.show', $delivery)
+            ->with(
+                'success',
+                $changed ? 'Statut de la livraison mis à jour.' : 'Cette livraison possède déjà ce statut.'
+            );
     }
 
 
@@ -255,15 +285,6 @@ class DeliveryController extends Controller
                     'max:10000',
                 ],
 
-                'status' => [
-                    'required',
-                    Rule::in([
-                        'planned',
-                        'in_transit',
-                        'delivered',
-                        'returned',
-                    ]),
-                ],
             ],
 
             [
