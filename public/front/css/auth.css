@@ -12,4 +12,6 @@
 .template-auth .auth-submit{padding:13px;font-size:13px}
 .template-auth .resend-row{margin:17px 0 10px;font-size:12px}
 .template-auth .change-email{font-size:11px}
+.template-auth .face-login-box{margin-left:auto;margin-right:auto;max-width:360px;text-align:center}
+.template-auth .face-login-box .face-camera-preview{display:block;width:100%;max-width:320px;aspect-ratio:4/3;object-fit:cover;margin:16px auto 12px;border:1px solid #dce5df;border-radius:12px;background:#eef5ef;box-shadow:0 4px 14px rgba(26,42,54,.08);transform:scaleX(-1)}
 @media(max-width:576px){.template-auth h1{font-size:22px}.template-auth .code-input{max-width:100%}}

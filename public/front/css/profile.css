@@ -26,3 +26,4 @@
 .profile-code-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .profile-code-list code{padding:6px;border-radius:6px;background:#fff;color:#20332d;text-align:center;font-size:13px}
 @media(max-width:900px){.profile-grid{grid-template-columns:1fr}.profile-nav{position:static}.profile-code-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.face-camera-preview{display:block;width:100%;max-width:360px;aspect-ratio:4/3;object-fit:cover;margin:16px 0 12px;border:1px solid #dce5df;border-radius:12px;background:#eef5ef;box-shadow:0 4px 14px rgba(26,42,54,.08);transform:scaleX(-1)}

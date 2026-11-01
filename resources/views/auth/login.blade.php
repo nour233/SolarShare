@@ -1,6 +1,7 @@
 @extends('layouts.auth')
 @section('title', 'Se connecter')
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <p class="auth-eyebrow">CONTENT DE VOUS REVOIR</p>
 <h1>Connectez-vous à SolarShare</h1>
 <p class="auth-intro">Saisissez votre adresse e-mail et votre mot de passe pour accéder à votre compte.</p>
@@ -14,6 +15,14 @@
 </div>
 <div class="d-flex justify-content-between align-items-center mt-3"><label class="form-check-label small"><input class="form-check-input me-2" type="checkbox" name="remember" value="1" @checked(old('remember'))>Se souvenir de moi</label><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></div>
 <button class="auth-submit" type="submit">Se connecter <span aria-hidden="true">↗</span></button>
+<div class="face-login-box mt-3">
+<button class="btn btn-outline-primary w-100" type="button" data-face-login="{{ route('login.face', [], false) }}"><i class="fas fa-camera me-2" aria-hidden="true"></i>Se connecter avec mon visage</button>
+<small class="text-muted d-block mt-2" data-face-status>Autorisez l’accès à la caméra de votre ordinateur.</small>
+</div>
 <p class="change-email mt-3">Pas encore de compte ? <a href="{{ route('register', [], false) }}">Créer mon compte</a></p>
 </form>
+@endsection
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="{{ asset('front/js/face-auth.js') }}"></script>
 @endsection

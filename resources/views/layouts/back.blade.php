@@ -485,6 +485,7 @@
 
 
 @include('incidents.partials.unread-poll')
+@yield('scripts')
 
 </body>
 

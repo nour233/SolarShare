@@ -17,6 +17,7 @@
 </div>
 <a href="#informations"><i class="far fa-user" aria-hidden="true"></i>Informations</a>
 <a href="#mot-de-passe"><i class="fas fa-key" aria-hidden="true"></i>Mot de passe</a>
+<a href="#visage"><i class="fas fa-camera" aria-hidden="true"></i>Connexion par visage</a>
 <a href="#securite"><i class="fas fa-shield-alt" aria-hidden="true"></i>Double authentification @if($user->hasTwoFactorEnabled())<span class="profile-dot" title="Activée"></span>@endif</a>
 @unless($user->isAdmin())<a href="#suppression" class="text-danger"><i class="far fa-trash-alt" aria-hidden="true"></i>Supprimer le compte</a>@endunless
 </nav>
@@ -54,6 +55,23 @@
 </div>
 <button class="btn btn-primary mt-4" type="submit">Changer le mot de passe</button>
 </form>
+</section>
+
+{{-- Face login --}}
+<section class="profile-card" id="visage">
+<h2>Connexion par visage</h2>
+<p class="text-muted">Votre caméra est utilisée uniquement dans votre navigateur. SolarShare conserve un modèle chiffré du visage, jamais votre photo.</p>
+@if($user->face_descriptor)
+<div class="alert alert-success">La connexion par visage est activée pour ce compte.</div>
+<form method="POST" action="{{ route('face-login.destroy') }}" onsubmit="return confirm('Désactiver la connexion par visage ?')">@csrf @method('DELETE')
+<div class="row g-2 align-items-end"><div class="col-md-6"><label class="form-label" for="remove_face_password">Mot de passe actuel</label><input class="form-control" type="password" id="remove_face_password" name="current_password" required></div><div class="col-md-auto"><button class="btn btn-outline-danger" type="submit">Désactiver</button></div></div>
+</form>
+@else
+<form method="POST" action="{{ route('face-login.store') }}" data-face-enrollment>@csrf
+<div class="row g-2 align-items-end"><div class="col-md-5"><label class="form-label" for="face_password">Mot de passe actuel</label><input class="form-control" type="password" id="face_password" name="current_password" required autocomplete="current-password"></div><div class="col-md-auto"><button class="btn btn-outline-primary" type="button" data-face-capture><i class="fas fa-camera me-2" aria-hidden="true"></i>Enregistrer mon visage</button></div></div>
+<small class="text-muted d-block mt-2" data-face-status>Une seule personne doit être visible et la caméra doit être autorisée.</small>
+</form>
+@endif
 </section>
 
 {{-- Two-factor authentication --}}
@@ -125,4 +143,8 @@
 </div>
 </div>
 </div>
+@endsection
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="{{ asset('front/js/face-auth.js') }}"></script>
 @endsection

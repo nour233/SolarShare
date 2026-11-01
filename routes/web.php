@@ -9,6 +9,8 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Auth\FaceLoginController;
+use App\Http\Controllers\FaceEnrollmentController;
 
 Route::post('/equipments/ai-search', \App\Http\Controllers\EquipmentSearchController::class)
     ->middleware('throttle:5,1')->name('equipments.ai-search');
@@ -68,6 +70,9 @@ Route::middleware('guest')->group(function () {
         '/login',
         [LoginController::class, 'store']
     )->middleware('throttle:5,1');
+    Route::post('/login/face', [FaceLoginController::class, 'store'])->middleware('throttle:5,1')->name('login.face');
+    Route::get('/login/face/password', [FaceLoginController::class, 'passwordForm'])->name('login.face.password');
+    Route::post('/login/face/password', [FaceLoginController::class, 'verifyPassword'])->middleware('throttle:5,1')->name('login.face.password.verify');
 
     // Second step of the login when 2FA is on.
     Route::get('/two-factor-challenge', [LoginController::class, 'challenge'])->name('two-factor.challenge');
@@ -111,6 +116,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
+    Route::post('/profile/face-login', [FaceEnrollmentController::class, 'store'])->middleware('throttle:6,1')->name('face-login.store');
+    Route::delete('/profile/face-login', [FaceEnrollmentController::class, 'destroy'])->middleware('throttle:6,1')->name('face-login.destroy');
 
     Route::post('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'enable'])->middleware('throttle:6,1')->name('two-factor.enable');
     Route::post('/profile/two-factor/confirm', [\App\Http\Controllers\TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('two-factor.confirm');
