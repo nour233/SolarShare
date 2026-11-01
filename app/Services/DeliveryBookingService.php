@@ -45,13 +45,17 @@ class DeliveryBookingService
                 ->whereKey($rental->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
-            $this->recommendations->assertRentalDate($lockedRental, Carbon::parse($date, config('app.timezone')));
+            $selectedDate = Carbon::parse($date, config('app.timezone'));
+            $this->recommendations->assertRentalDate($lockedRental, $selectedDate);
 
             $point = PickupPoint::query()
                 ->whereKey($pickupPointId)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $point->load(['openingHours', 'closures']);
+            $point->load([
+                'openingHours',
+                'closures' => fn ($query) => $query->whereDate('closure_date', $selectedDate),
+            ]);
 
             $activeDeliveries = Delivery::query()
                 ->where('rental_id', $lockedRental->id)
@@ -60,20 +64,30 @@ class DeliveryBookingService
                 ->orderBy('id')
                 ->get();
 
-            if ($currentDelivery && (
-                $currentDelivery->rental_id !== $lockedRental->id
-                || $currentDelivery->type !== 'pickup'
-                || $currentDelivery->status !== 'planned'
-            )) {
-                throw ValidationException::withMessages([
-                    'delivery' => 'Seul un rendez-vous de retrait planifié peut être modifié.',
-                ]);
-            }
+            if ($currentDelivery) {
+                $currentDelivery = $activeDeliveries->firstWhere('id', $currentDelivery->id)
+                    ?? Delivery::query()
+                        ->whereKey($currentDelivery->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-            if ($currentDelivery && $currentDelivery->type !== 'pickup') {
-                throw ValidationException::withMessages([
-                    'delivery' => 'Une livraison à domicile ne peut pas être convertie implicitement en retrait.',
-                ]);
+                if ($currentDelivery->rental_id !== $lockedRental->id) {
+                    throw ValidationException::withMessages([
+                        'delivery' => 'Cette livraison ne correspond pas à la location sélectionnée.',
+                    ]);
+                }
+
+                if ($currentDelivery->type !== 'pickup') {
+                    throw ValidationException::withMessages([
+                        'delivery' => 'Une livraison à domicile ne peut pas être convertie implicitement en retrait.',
+                    ]);
+                }
+
+                if ($currentDelivery->status !== 'planned') {
+                    throw ValidationException::withMessages([
+                        'delivery' => 'Seul un rendez-vous de retrait planifié peut être modifié.',
+                    ]);
+                }
             }
 
             $existingPickup = $currentDelivery;
@@ -100,7 +114,6 @@ class DeliveryBookingService
                 ]);
             }
 
-            $selectedDate = Carbon::parse($date, config('app.timezone'));
             $slotMetrics = $this->operations->utilizationForDate(
                 collect([$point]),
                 $selectedDate,
@@ -163,10 +176,17 @@ class DeliveryBookingService
                 ]);
             }
 
-            if ($delivery && ($delivery->rental_id !== $lockedRental->id || $delivery->status !== 'planned')) {
-                throw ValidationException::withMessages([
-                    'delivery' => 'Seule une livraison planifiée de cette location peut être modifiée.',
-                ]);
+            if ($delivery) {
+                $delivery = Delivery::query()
+                    ->whereKey($delivery->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($delivery->rental_id !== $lockedRental->id || $delivery->status !== 'planned') {
+                    throw ValidationException::withMessages([
+                        'delivery' => 'Seule une livraison planifiée de cette location peut être modifiée.',
+                    ]);
+                }
             }
 
             $activeExists = Delivery::query()

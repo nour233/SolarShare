@@ -12,6 +12,7 @@ use App\Services\DeliveryBookingService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -212,6 +213,65 @@ class DeliveryBookingTest extends TestCase
             'status' => 'planned',
             'pickup_point_id' => null,
         ]);
+    }
+
+    public function test_admin_delivery_crud_uses_the_same_pickup_capacity_rules(): void
+    {
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => 'admin'])->save();
+        $firstRental = $this->rental();
+        $secondRental = $this->rental();
+        $point = $this->point(['capacity' => 1]);
+        $this->actingAs($admin);
+
+        $payload = [
+            'rental_id' => $firstRental->id,
+            'type' => 'pickup',
+            'pickup_point_id' => $point->id,
+            'scheduled_date' => '2026-11-02',
+            'scheduled_time' => '09:00',
+            'delivery_fee' => 5,
+        ];
+        $this->post(route('admin.deliveries.store'), $payload)
+            ->assertRedirect(route('admin.deliveries.index'));
+
+        $this->post(route('admin.deliveries.store'), array_merge($payload, [
+            'rental_id' => $secondRental->id,
+        ]))->assertSessionHasErrors('scheduled_time');
+
+        $delivery = Delivery::firstOrFail();
+        $this->put(route('admin.deliveries.update', $delivery), array_merge($payload, [
+            'scheduled_time' => '09:30',
+        ]))->assertRedirect(route('admin.deliveries.index'));
+
+        $this->assertSame('09:30', substr((string) $delivery->fresh()->scheduled_time, 0, 5));
+        $this->assertDatabaseCount('deliveries', 1);
+    }
+
+    public function test_booking_and_confirmation_notification_roll_back_as_one_transaction(): void
+    {
+        $rental = $this->rental();
+        $point = $this->point();
+        DB::statement(
+            "CREATE TRIGGER fail_pickup_notification BEFORE INSERT ON notifications
+             BEGIN SELECT RAISE(FAIL, 'simulated notification failure'); END"
+        );
+
+        try {
+            app(DeliveryBookingService::class)->bookPickup(
+                $rental,
+                $point->id,
+                '2026-11-02',
+                '09:00',
+                $rental->renter
+            );
+            $this->fail('The simulated notification failure should be raised.');
+        } catch (QueryException) {
+            $this->assertDatabaseCount('deliveries', 0);
+            $this->assertDatabaseCount('notifications', 0);
+        } finally {
+            DB::statement('DROP TRIGGER IF EXISTS fail_pickup_notification');
+        }
     }
 
     private function rental(): Rental
