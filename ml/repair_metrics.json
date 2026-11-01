@@ -1,0 +1,104 @@
+{
+    "model_name": "Random Forest Regressor + TF-IDF",
+    "n_estimators": 200,
+    "min_samples_leaf": 3,
+    "mae": 1.22,
+    "rmse": 1.6,
+    "r2": 0.775,
+    "within_1_day": 52.0,
+    "within_2_days": 79.3,
+    "cv_mae_mean": 1.33,
+    "cv_mae_std": 0.08,
+    "baseline_global_mae": 2.84,
+    "baseline_action_mae": 2.23,
+    "improvement_vs_action_baseline": 45.2,
+    "action_average_days": {
+        "inspection": 4.5,
+        "nettoyage": 2.6,
+        "reparation": 7.2
+    },
+    "feature_groups": {
+        "Gravité": 47.95,
+        "Mots de la description": 37.98,
+        "Type d'intervention": 5.81,
+        "Catégorie": 3.53,
+        "Incidents passés": 2.14,
+        "Maintenances passées": 1.43,
+        "Nombre de photos": 1.16
+    },
+    "top_words": {
+        "pale": 10.14,
+        "batterie": 1.99,
+        "cellule": 1.83,
+        "mat": 1.67,
+        "verre": 1.5,
+        "depuis": 1.41,
+        "fumee": 1.02,
+        "boitier": 0.79,
+        "chauffe": 0.73,
+        "plus": 0.63
+    },
+    "examples": [
+        {
+            "description": "de la fumée est sortie du câble pendant l'utilisation.",
+            "category": "Panneaux solaires",
+            "severity": "grave",
+            "real": 7,
+            "predicted": 10.0
+        },
+        {
+            "description": "Attention, odeur de brûlé près de la boîte de jonction. Pouvez-vous intervenir rapidement ?",
+            "category": "Panneaux solaires",
+            "severity": "grave",
+            "real": 11,
+            "predicted": 8.7
+        },
+        {
+            "description": "Attention, il manque un morceau de pale depuis l'orage. Merci d'avance.",
+            "category": "Petites éoliennes",
+            "severity": "grave",
+            "real": 15,
+            "predicted": 11.8
+        },
+        {
+            "description": "des feuilles collées sur les cellules pendant l'utilisation. Pouvez-vous intervenir rapidement ?",
+            "category": "Panneaux solaires",
+            "severity": "mineur",
+            "real": 1,
+            "predicted": 2.1
+        },
+        {
+            "description": "Problème : odeur de brûlé près de la boîte de jonction. Pouvez-vous intervenir rapidement ?",
+            "category": "Panneaux solaires",
+            "severity": "grave",
+            "real": 6,
+            "predicted": 8.3
+        },
+        {
+            "description": "Problème : le boîtier de la batterie est déformé après la tempête. Merci de vérifier.",
+            "category": "Batteries",
+            "severity": "grave",
+            "real": 11,
+            "predicted": 9.4
+        },
+        {
+            "description": "la batterie ne charge plus après le transport. C'est urgent.",
+            "category": "Batteries",
+            "severity": "moyen",
+            "real": 5,
+            "predicted": 5.5
+        },
+        {
+            "description": "Bonjour, les haubans sont détendus. Pouvez-vous intervenir rapidement ?",
+            "category": "Petites éoliennes",
+            "severity": "grave",
+            "real": 11,
+            "predicted": 9.7
+        }
+    ],
+    "train_samples": 1200,
+    "test_samples": 300,
+    "simulated_samples": 1500,
+    "real_samples": 0,
+    "trained_at": "2026-11-01 12:54:55"
+}

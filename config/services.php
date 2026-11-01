@@ -6,6 +6,17 @@ return [
         'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-5'),
     ],
 
+    // Incident diagnosis (maintenance module). Without a key, keyword rules are used.
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    ],
+
+    // Offline ML models (ml/*.py). Empty python = use the fallback averages.
+    'ml' => [
+        'python' => env('ML_PYTHON', 'python'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

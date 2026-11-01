@@ -436,6 +436,11 @@ Route::middleware(['auth', 'admin'])
         |--------------------------------------------------------------------------
         */
 
+        Route::get(
+            '/maintenances/model',
+            \App\Http\Controllers\Admin\RepairModelController::class
+        )->name('admin.repair-model');
+
         Route::resource(
             'maintenances',
             \App\Http\Controllers\Admin\MaintenanceController::class
@@ -459,6 +464,16 @@ Route::middleware(['auth', 'admin'])
             '/incidents/{incident}/status',
             [\App\Http\Controllers\Admin\IncidentController::class, 'updateStatus']
         )->name('admin.incidents.status');
+
+        Route::post(
+            '/incidents/{incident}/diagnosis',
+            [\App\Http\Controllers\Admin\IncidentController::class, 'diagnose']
+        )->name('admin.incidents.diagnose');
+
+        Route::patch(
+            '/incidents/{incident}/severity',
+            [\App\Http\Controllers\Admin\IncidentController::class, 'applySeverity']
+        )->name('admin.incidents.severity');
 
 
         /*

@@ -7,6 +7,8 @@ use App\Models\Incident;
 use App\Models\IncidentMessage;
 use App\Models\User;
 use App\Notifications\NewIncidentReported;
+use App\Services\IncidentDiagnosisService;
+use App\Services\RepairTimePredictor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +33,7 @@ class IncidentController extends Controller
         return view('incidents.create', ['equipment' => $equipment->load('category')]);
     }
 
-    public function store(Request $request, Equipment $equipment)
+    public function store(Request $request, Equipment $equipment, IncidentDiagnosisService $diagnosis, RepairTimePredictor $predictor)
     {
         $data = $request->validate([
             'description' => ['required', 'string', 'min:10', 'max:2000'],
@@ -47,6 +49,11 @@ class IncidentController extends Controller
             'severity' => $data['severity'],
             'photos' => self::storePhotos($request),
         ]);
+
+        // AI diagnosis (severity check, recommended maintenance, safety advice),
+        // then the offline ML model estimates the repair time.
+        $incident->update(['ai_diagnosis' => $diagnosis->diagnose($incident)]);
+        $incident->update(['repair_estimate' => $predictor->predict($incident)]);
 
         // Notify admins
         try {
