@@ -42,6 +42,32 @@ class ReviewTest extends TestCase
         $this->get('/')->assertOk()->assertSee('Accueil parfait')->assertSee('Une expérience excellente avec SolarShare.');
     }
 
+    public function test_reviews_can_be_filtered_by_rating(): void
+    {
+        $user = User::factory()->create();
+        Review::create(['user_id' => $user->id, 'service' => 'general', 'rating' => 5, 'title' => 'Excellent', 'comment' => 'Une expérience excellente avec SolarShare.']);
+        Review::create(['user_id' => $user->id, 'service' => 'general', 'rating' => 2, 'title' => 'Décevant', 'comment' => 'Une expérience qui doit être améliorée.']);
+
+        $this->get('/reviews?rating_filter=5')
+            ->assertOk()
+            ->assertSee('Excellent')
+            ->assertDontSee('Décevant')
+            ->assertSee('Réinitialiser');
+    }
+
+    public function test_reviews_can_be_searched_by_user_name(): void
+    {
+        $matchingUser = User::factory()->create(['name' => 'Nadia Solar']);
+        $otherUser = User::factory()->create(['name' => 'Karim Energy']);
+        Review::create(['user_id' => $matchingUser->id, 'service' => 'general', 'rating' => 5, 'title' => 'Avis de Nadia', 'comment' => 'Une expérience excellente avec SolarShare.']);
+        Review::create(['user_id' => $otherUser->id, 'service' => 'general', 'rating' => 5, 'title' => 'Avis de Karim', 'comment' => 'Une expérience excellente avec SolarShare.']);
+
+        $this->get('/reviews?user_search=Nadia')
+            ->assertOk()
+            ->assertSee('Avis de Nadia')
+            ->assertDontSee('Avis de Karim');
+    }
+
     public function test_owner_can_edit_within_five_minutes_but_delete_at_any_time(): void
     {
         $user = User::factory()->create();

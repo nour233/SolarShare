@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (Schema::hasTable('passkeys')) {
+            return;
+        }
+
+        Schema::create('passkeys', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('credential_id', 512)->unique();
+            $table->text('public_key');
+            $table->unsignedBigInteger('counter')->default(0);
+            $table->json('transports')->nullable();
+            $table->string('name')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        // The original migration owns this table on fresh installations.
+    }
+};

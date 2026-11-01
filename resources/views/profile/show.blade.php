@@ -61,7 +61,7 @@
 <section class="profile-card" id="visage">
 <h2>Connexion par visage</h2>
 <p class="text-muted">Votre caméra est utilisée uniquement dans votre navigateur. SolarShare conserve un modèle chiffré du visage, jamais votre photo.</p>
-@if($user->face_descriptor)
+@if($faceDescriptorAvailable)
 <div class="alert alert-success">La connexion par visage est activée pour ce compte.</div>
 <form method="POST" action="{{ route('face-login.destroy') }}" onsubmit="return confirm('Désactiver la connexion par visage ?')">@csrf @method('DELETE')
 <div class="row g-2 align-items-end"><div class="col-md-6"><label class="form-label" for="remove_face_password">Mot de passe actuel</label><input class="form-control" type="password" id="remove_face_password" name="current_password" required></div><div class="col-md-auto"><button class="btn btn-outline-danger" type="submit">Désactiver</button></div></div>

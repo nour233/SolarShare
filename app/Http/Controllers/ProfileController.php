@@ -17,6 +17,7 @@ class ProfileController extends Controller
 
         return view('profile.show', [
             'user' => $user,
+            'faceDescriptorAvailable' => $user->usableFaceDescriptor() !== null,
             // While 2FA is being set up (secret saved, not confirmed yet), show the QR code.
             'qrCode' => $user->two_factor_secret && ! $user->hasTwoFactorEnabled() ? $twoFactor->qrCodeSvg($user, $user->two_factor_secret) : null,
         ]);

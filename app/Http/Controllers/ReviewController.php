@@ -8,10 +8,27 @@ use Illuminate\Validation\Rule;
 
 class ReviewController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $data = $request->validate([
+            'rating_filter' => ['nullable', 'integer', 'between:1,5'],
+            'user_search' => ['nullable', 'string', 'max:255'],
+        ]);
+        $rating = $data['rating_filter'] ?? null;
+        $userSearch = trim($data['user_search'] ?? '');
+
         return view('reviews.index', [
-            'reviews' => Review::with('user')->latest()->paginate(12),
+            'reviews' => Review::with('user')
+                ->when($rating, fn ($query) => $query->where('rating', $rating))
+                ->when($userSearch, fn ($query) => $query->whereHas('user', function ($userQuery) use ($userSearch) {
+                    $escapedSearch = addcslashes($userSearch, '%_\\');
+                    $userQuery->whereRaw("name LIKE ? ESCAPE '\\'", ['%'.$escapedSearch.'%']);
+                }))
+                ->latest()
+                ->paginate(12)
+                ->withQueryString(),
+            'rating' => $rating,
+            'userSearch' => $userSearch,
         ]);
     }
 

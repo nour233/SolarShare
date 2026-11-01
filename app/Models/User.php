@@ -7,6 +7,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -79,6 +81,22 @@ class User extends Authenticatable
         return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
     }
 
+    public function usableFaceDescriptor(): ?array
+    {
+        try {
+            $descriptor = $this->face_descriptor;
+        } catch (DecryptException $exception) {
+            Log::warning('Stored face descriptor could not be decrypted.', [
+                'user_id' => $this->getKey(),
+                'exception' => $exception::class,
+            ]);
+
+            return null;
+        }
+
+        return is_array($descriptor) && count($descriptor) === 128 ? $descriptor : null;
+    }
+
     /** Profile photo, or null to show the initials. */
     public function avatarUrl(): ?string
     {
@@ -118,5 +136,10 @@ class User extends Authenticatable
     public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function passkeys(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Passkey::class);
     }
 }

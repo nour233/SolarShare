@@ -19,7 +19,7 @@ class FaceLoginController extends Controller
             'descriptor.*' => ['required', 'numeric', 'between:-1,1'],
         ]);
         $user = User::whereNotNull('face_descriptor')->get()->first(
-            fn (User $candidate): bool => $this->distance($candidate->face_descriptor, $data['descriptor']) <= 0.55
+            fn (User $candidate): bool => $this->distance($candidate->usableFaceDescriptor(), $data['descriptor']) <= 0.55
         );
 
         if (! $user) {
@@ -68,9 +68,9 @@ class FaceLoginController extends Controller
         return redirect()->route($user->isAdmin() ? 'admin.dashboard' : 'home');
     }
 
-    private function distance(array $first, array $second): float
+    private function distance(?array $first, array $second): float
     {
-        if (count($first) !== 128 || count($second) !== 128) {
+        if ($first === null || count($second) !== 128) {
             return 1.0;
         }
 

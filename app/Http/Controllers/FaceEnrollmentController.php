@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class FaceEnrollmentController extends Controller
 {
@@ -15,7 +17,11 @@ class FaceEnrollmentController extends Controller
             'descriptor.*' => ['required', 'numeric', 'between:-1,1'],
         ]);
 
-        $request->user()->forceFill(['face_descriptor' => $data['descriptor']])->save();
+        DB::table('users')
+            ->where('id', $request->user()->getKey())
+            ->update([
+                'face_descriptor' => Crypt::encrypt(json_encode($data['descriptor'], JSON_THROW_ON_ERROR), false),
+            ]);
 
         return response()->json(['message' => 'Connexion par visage activée.']);
     }
@@ -23,7 +29,9 @@ class FaceEnrollmentController extends Controller
     public function destroy(Request $request)
     {
         $request->validate(['current_password' => ['required', 'current_password']]);
-        $request->user()->forceFill(['face_descriptor' => null])->save();
+        DB::table('users')
+            ->where('id', $request->user()->getKey())
+            ->update(['face_descriptor' => null]);
 
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Connexion par visage désactivée.']);
