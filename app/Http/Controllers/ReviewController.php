@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
+use App\Services\SentimentAnalysisService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -37,9 +38,15 @@ class ReviewController extends Controller
         return view('reviews.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SentimentAnalysisService $sentiment)
     {
-        $request->user()->reviews()->create($this->validated($request));
+        $data = $this->validated($request);
+        $analysis = $sentiment->analyze($data['title'].' '.$data['comment']);
+        $request->user()->reviews()->create($data + [
+            'sentiment_label' => $analysis['label'],
+            'sentiment_score' => $analysis['score'],
+            'sentiment_source' => $analysis['source'],
+        ]);
 
         return redirect()->route('reviews.index')->with('status', 'Merci pour votre avis !');
     }
@@ -51,10 +58,16 @@ class ReviewController extends Controller
         return view('reviews.edit', compact('review'));
     }
 
-    public function update(Request $request, Review $review)
+    public function update(Request $request, Review $review, SentimentAnalysisService $sentiment)
     {
         $this->authorizeOwner($request, $review);
-        $review->update($this->validated($request));
+        $data = $this->validated($request);
+        $analysis = $sentiment->analyze($data['title'].' '.$data['comment']);
+        $review->update($data + [
+            'sentiment_label' => $analysis['label'],
+            'sentiment_score' => $analysis['score'],
+            'sentiment_source' => $analysis['source'],
+        ]);
 
         return redirect()->route('reviews.index')->with('status', 'Votre avis a été modifié.');
     }

@@ -37,11 +37,20 @@
 
     <h2>Analyse par service</h2>
     <table>
-        <thead><tr><th>Service</th><th>Avis</th><th>Moyenne</th><th>Positifs</th><th>À améliorer</th></tr></thead>
+        <thead><tr><th>Service</th><th>Avis</th><th>Moyenne étoiles</th><th>Score texte</th><th>Sentiment</th></tr></thead>
         <tbody>
         @foreach($services as $service)
-            <tr><td>{{ $service['label'] }}</td><td>{{ $service['count'] }}</td><td>{{ $service['average'] !== null ? number_format($service['average'], 1, ',', ' ') . '/5' : '—' }}</td><td>{{ $service['positive'] }}</td><td>{{ $service['negative'] }}</td></tr>
+            <tr><td>{{ $service['label'] }}</td><td>{{ $service['count'] }}</td><td>{{ $service['average'] !== null ? number_format($service['average'], 1, ',', ' ') . '/5' : '—' }}</td><td>{{ $service['sentiment_average'] !== null ? number_format($service['sentiment_average'], 2, ',', ' ') : '—' }}</td><td>{{ $service['sentiment_positive'] }} positif(s), {{ $service['sentiment_negative'] }} négatif(s)</td></tr>
         @endforeach
+        </tbody>
+    </table>
+
+    <h2>Sentiment des avis et réclamations</h2>
+    <table>
+        <thead><tr><th>Catégorie</th><th>Positif</th><th>Neutre</th><th>Négatif</th></tr></thead>
+        <tbody>
+            <tr><td>Avis et réclamations</td><td>{{ $sentimentCounts['positive'] }}</td><td>{{ $sentimentCounts['neutral'] }}</td><td>{{ $sentimentCounts['negative'] }}</td></tr>
+            <tr><td>Réclamations uniquement</td><td>{{ $reclamationSentimentCounts['positive'] }}</td><td>{{ $reclamationSentimentCounts['neutral'] }}</td><td>{{ $reclamationSentimentCounts['negative'] }}</td></tr>
         </tbody>
     </table>
 

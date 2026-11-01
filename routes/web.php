@@ -522,6 +522,11 @@ Route::middleware(['auth', 'admin'])
             [\App\Http\Controllers\Admin\ReclamationController::class, 'show']
         )->name('admin.reclamations.show');
 
+        Route::post(
+            '/reclamations/{reclamation}/response-draft',
+            [\App\Http\Controllers\Admin\ReclamationController::class, 'generateResponseDraft']
+        )->middleware('throttle:20,1')->name('admin.reclamations.response-draft');
+
         Route::patch(
             '/reclamations/{reclamation}/status',
             [\App\Http\Controllers\Admin\ReclamationController::class, 'updateStatus']
@@ -548,6 +553,11 @@ Route::middleware(['auth', 'admin'])
             '/reputation/download',
             [\App\Http\Controllers\Admin\ReputationController::class, 'download']
         )->name('admin.reputation.download');
+
+        Route::post(
+            '/reputation/assistant',
+            [\App\Http\Controllers\Admin\ReputationController::class, 'askAssistant']
+        )->middleware('throttle:20,1')->name('admin.reputation.assistant');
 
         Route::get(
             '/reputation/clients',

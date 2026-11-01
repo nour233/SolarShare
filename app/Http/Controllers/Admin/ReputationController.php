@@ -5,7 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Models\User;
+use App\Models\Reclamation;
+use App\Services\SentimentAnalysisService;
+use App\Services\ReputationAssistantService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -26,11 +31,39 @@ class ReputationController extends Controller
             ->download('rapport-reputation-solarshare.pdf');
     }
 
+    public function askAssistant(Request $request, ReputationAssistantService $assistant): JsonResponse
+    {
+        $validated = $request->validate([
+            'question' => ['required', 'string', 'min:3', 'max:500'],
+        ]);
+
+        return response()->json($assistant->answer($validated['question']));
+    }
+
     private function reportData(): array
     {
         $reviews = Review::with('user')->latest()->get();
+        $reclamations = Reclamation::latest()->get();
+        $sentiment = app(SentimentAnalysisService::class);
+        $reviews->each(function (Review $review) use ($sentiment): void {
+            $analysis = $review->sentiment_label
+                ? ['label' => $review->sentiment_label, 'score' => $review->sentiment_score]
+                : $sentiment->fallback($review->title.' '.$review->comment);
+            $review->setAttribute('sentiment_label', $analysis['label']);
+            $review->setAttribute('sentiment_score', $analysis['score']);
+        });
+        $reclamations->each(function (Reclamation $reclamation) use ($sentiment): void {
+            $analysis = $reclamation->sentiment_label
+                ? ['label' => $reclamation->sentiment_label, 'score' => $reclamation->sentiment_score]
+                : $sentiment->fallback($reclamation->subject.' '.$reclamation->description);
+            $reclamation->setAttribute('sentiment_label', $analysis['label']);
+            $reclamation->setAttribute('sentiment_score', $analysis['score']);
+        });
         $ratedReviews = $reviews->whereNotNull('rating');
         $averageRating = $ratedReviews->avg('rating');
+        $sentimentItems = $reviews->concat($reclamations);
+        $sentimentCounts = collect(SentimentAnalysisService::LABELS)
+            ->mapWithKeys(fn (string $label): array => [$label => $sentimentItems->where('sentiment_label', $label)->count()]);
 
         $services = collect(Review::SERVICES)->map(function (string $label, string $service) use ($reviews) {
             $serviceReviews = $reviews->where('service', $service);
@@ -42,6 +75,9 @@ class ReputationController extends Controller
                 'average' => $serviceReviews->avg('rating'),
                 'positive' => $serviceReviews->where('rating', '>=', 4)->count(),
                 'negative' => $serviceReviews->where('rating', '<=', 2)->count(),
+                'sentiment_average' => $serviceReviews->avg('sentiment_score'),
+                'sentiment_positive' => $serviceReviews->where('sentiment_label', 'positive')->count(),
+                'sentiment_negative' => $serviceReviews->where('sentiment_label', 'negative')->count(),
             ];
         })->values();
 
@@ -72,6 +108,10 @@ class ReputationController extends Controller
             'recentReviews' => $reviews->take(8),
             'bestClients' => $rankedClients->sortByDesc('average')->take(5)->values(),
             'worstClients' => $rankedClients->sortBy('average')->take(5)->values(),
+            'sentimentCounts' => $sentimentCounts,
+            'sentimentAverage' => $sentimentItems->avg('sentiment_score'),
+            'reclamationSentimentCounts' => collect(SentimentAnalysisService::LABELS)
+                ->mapWithKeys(fn (string $label): array => [$label => $reclamations->where('sentiment_label', $label)->count()]),
         ];
     }
 

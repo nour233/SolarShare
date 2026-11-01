@@ -22,9 +22,9 @@ class Reclamation extends Model
         'rejetee' => 'Rejetée',
     ];
 
-    protected $fillable = ['user_id', 'type', 'review_author_name', 'subject', 'description', 'reclamation_date', 'status', 'admin_response'];
+    protected $fillable = ['user_id', 'type', 'review_author_name', 'subject', 'description', 'reclamation_date', 'status', 'admin_response', 'sentiment_label', 'sentiment_score', 'sentiment_source'];
 
-    protected $casts = ['reclamation_date' => 'date'];
+    protected $casts = ['reclamation_date' => 'date', 'sentiment_score' => 'float'];
 
     protected $attributes = ['status' => 'ouverte'];
 

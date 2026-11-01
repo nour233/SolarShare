@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reclamation;
 use App\Models\User;
 use App\Notifications\NewReclamationSubmitted;
+use App\Services\SentimentAnalysisService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -48,9 +49,15 @@ class ReclamationController extends Controller
         return view('reclamations.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SentimentAnalysisService $sentiment)
     {
         $data = $request->validate($this->rules());
+        $analysis = $sentiment->analyze($data['subject'].' '.$data['description']);
+        $data += [
+            'sentiment_label' => $analysis['label'],
+            'sentiment_score' => $analysis['score'],
+            'sentiment_source' => $analysis['source'],
+        ];
         $reclamation = $request->user()->reclamations()->create($data);
 
         // Notify admins

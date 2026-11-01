@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reclamation;
 use App\Notifications\ReclamationAnswered;
+use App\Services\ReclamationResponseDraftService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -50,6 +52,13 @@ class ReclamationController extends Controller
     public function show(Reclamation $reclamation)
     {
         return view('back.reclamations.show', compact('reclamation'));
+    }
+
+    public function generateResponseDraft(
+        Reclamation $reclamation,
+        ReclamationResponseDraftService $draftService
+    ): JsonResponse {
+        return response()->json($draftService->generate($reclamation));
     }
 
     public function updateStatus(Request $request, Reclamation $reclamation)

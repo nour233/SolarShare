@@ -3,6 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Reclamation;
+use App\Models\Category;
+use App\Models\Delivery;
+use App\Models\Equipment;
+use App\Models\Rental;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,6 +37,7 @@ class ReclamationTest extends TestCase
         ])->assertRedirect('/reclamations');
 
         $this->assertDatabaseHas('reclamations', ['user_id' => $user->id, 'type' => 'equipement']);
+        $this->assertDatabaseHas('reclamations', ['user_id' => $user->id, 'sentiment_label' => 'negative']);
         $this->actingAs($user)->get('/reclamations')->assertSee('Panne du panneau')->assertDontSee('Autre demande');
         $this->actingAs($user)->get('/reclamations/'.$otherReclamation->id)->assertForbidden();
     }
@@ -135,5 +140,86 @@ class ReclamationTest extends TestCase
             ->getJson('/admin/reclamations?search=Recherche&status=en_cours&sort=client')
             ->assertOk()
             ->assertJsonPath('html', fn (string $html): bool => str_contains($html, 'Client Recherche') && str_contains($html, 'Avis à examiner'));
+    }
+
+    public function test_admin_can_generate_a_reclamation_response_draft(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $client = User::factory()->create(['name' => 'Client Réclamation']);
+        $reclamation = Reclamation::create([
+            'user_id' => $client->id,
+            'type' => 'livraison',
+            'subject' => 'Livraison en retard',
+            'description' => 'La livraison est arrivée en retard.',
+            'reclamation_date' => today(),
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson('/admin/reclamations/'.$reclamation->id.'/response-draft')
+            ->assertOk()
+            ->assertJsonPath('source', 'regles')
+            ->assertJsonPath('draft', fn (string $draft): bool => str_contains($draft, 'Client Réclamation') && str_contains($draft, 'Livraison en retard'));
+    }
+
+    public function test_regular_users_cannot_generate_an_admin_response_draft(): void
+    {
+        $user = User::factory()->create();
+        $reclamation = Reclamation::create([
+            'user_id' => $user->id,
+            'type' => 'location',
+            'subject' => 'Ma location',
+            'description' => 'J’ai une question.',
+            'reclamation_date' => today(),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson('/admin/reclamations/'.$reclamation->id.'/response-draft')
+            ->assertForbidden();
+    }
+
+    public function test_delivery_response_draft_uses_the_real_delivery_status_and_date(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $client = User::factory()->create(['name' => 'Client Livraison']);
+        $category = Category::create(['name' => 'Batteries', 'icon' => 'fa-battery-full']);
+        $equipment = Equipment::create([
+            'title' => 'Batterie livraison',
+            'description' => 'Équipement de test',
+            'condition' => 'Bon état',
+            'price_per_day' => 20,
+            'category_id' => $category->id,
+            'owner_id' => $admin->id,
+        ]);
+        $rental = Rental::create([
+            'renter_id' => $client->id,
+            'equipment_id' => $equipment->id,
+            'start_date' => today(),
+            'end_date' => today()->addDays(3),
+            'total_price' => 80,
+            'status' => 'accepted',
+        ]);
+        Delivery::create([
+            'rental_id' => $rental->id,
+            'type' => 'home_delivery',
+            'scheduled_date' => today()->addDay(),
+            'scheduled_time' => '10:00',
+            'status' => 'in_transit',
+            'delivery_fee' => 0,
+        ]);
+        $reclamation = Reclamation::create([
+            'user_id' => $client->id,
+            'type' => 'livraison',
+            'subject' => 'Suivi de livraison',
+            'description' => 'Je voudrais connaître l’avancement de ma livraison.',
+            'reclamation_date' => today(),
+            'status' => 'en_cours',
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson('/admin/reclamations/'.$reclamation->id.'/response-draft')
+            ->assertOk()
+            ->assertJsonPath('source', 'regles')
+            ->assertJsonPath('draft', fn (string $draft): bool => str_contains($draft, 'en cours d’acheminement')
+                && str_contains($draft, today()->addDay()->format('d/m/Y')));
     }
 }

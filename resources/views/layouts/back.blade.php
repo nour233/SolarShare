@@ -35,6 +35,12 @@
             color: white;
             padding: 30px 22px;
             flex-shrink: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            scrollbar-width: thin;
+            scrollbar-color: #6d9d78 #17372c;
         }
 
         .side h2 {
@@ -181,6 +187,9 @@
             .side {
                 width: 100%;
                 padding: 20px;
+                max-height: none;
+                position: static;
+                overflow-y: visible;
             }
 
             .side nav {

@@ -25,6 +25,7 @@ class ReviewTest extends TestCase
         ])->assertRedirect('/reviews');
 
         $this->assertDatabaseHas('reviews', ['user_id' => $user->id, 'rating' => 5]);
+        $this->assertDatabaseHas('reviews', ['user_id' => $user->id, 'sentiment_label' => 'positive']);
         $this->get('/reviews')->assertSee('Excellent service');
     }
 

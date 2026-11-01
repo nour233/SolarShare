@@ -15,7 +15,9 @@ class Review extends Model
         'general' => 'Avis général',
     ];
 
-    protected $fillable = ['user_id', 'service', 'rating', 'title', 'comment'];
+    protected $fillable = ['user_id', 'service', 'rating', 'title', 'comment', 'sentiment_label', 'sentiment_score', 'sentiment_source'];
+
+    protected $casts = ['sentiment_score' => 'float'];
 
     public function user(): BelongsTo
     {
