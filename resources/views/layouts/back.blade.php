@@ -307,7 +307,7 @@
 
             {{-- Maintenance --}}
             <a
-                class="{{ request()->routeIs('admin.maintenances.*') ? 'active' : '' }}"
+                class="{{ request()->routeIs('admin.maintenances.*', 'admin.repair-model') ? 'active' : '' }}"
                 href="{{ route('admin.maintenances.index') }}"
             >
                 <i class="fa fa-tools me-2"></i>
@@ -412,9 +412,10 @@
 
                 @include('partials.notification-dropdown')
 
-                <span>
+                <a href="{{ route('profile.show') }}" class="d-flex align-items-center text-reset text-decoration-none" title="Mon profil">
+                    @if(auth()->user()->avatarUrl())<img src="{{ auth()->user()->avatarUrl() }}" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;margin-right:8px">@endif
                     {{ auth()->user()->name }}
-                </span>
+                </a>
 
 
                 <form

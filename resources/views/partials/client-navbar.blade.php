@@ -21,14 +21,17 @@
                 <div class="d-flex align-items-center">
                     @include('partials.notification-dropdown')
                 </div>
-                <span class="nav-item nav-link d-inline-flex align-items-center gap-1">
-                    {{ auth()->user()->name }}
-                    @if(auth()->user()->rfm_segment === 'vip')
-                        <span class="badge bg-warning text-dark" style="font-size: 11px;">⭐ VIP</span>
-                    @elseif(auth()->user()->rfm_segment === 'regular')
-                        <span class="badge bg-success" style="font-size: 11px;">✅ Fidèle</span>
-                    @endif
-                </span>
+<a href="{{ route('profile.show') }}" class="nav-item nav-link d-flex align-items-center gap-1 {{ request()->routeIs('profile.*') ? 'active' : '' }}" title="Mon profil">
+    @if(method_exists(auth()->user(), 'avatarUrl') && auth()->user()->avatarUrl())
+        <img src="{{ auth()->user()->avatarUrl() }}" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;margin-right:8px">
+    @endif
+    {{ auth()->user()->name }}
+    @if(auth()->user()->rfm_segment === 'vip')
+        <span class="badge bg-warning text-dark ms-1" style="font-size: 11px;">⭐ VIP</span>
+    @elseif(auth()->user()->rfm_segment === 'regular')
+        <span class="badge bg-success text-white ms-1" style="font-size: 11px;">✅ Fidèle</span>
+    @endif
+</a>
             @endauth
         </div>
         @guest

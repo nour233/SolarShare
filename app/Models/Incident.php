@@ -12,13 +12,28 @@ class Incident extends Model
 
     public const STATUSES = ['ouvert' => 'Ouvert', 'en_cours' => 'En cours', 'resolu' => 'Résolu', 'rejete' => 'Rejeté'];
 
-    protected $fillable = ['equipment_id', 'user_id', 'rental_id', 'description', 'severity', 'photos', 'status'];
+    protected $fillable = ['equipment_id', 'user_id', 'rental_id', 'description', 'severity', 'photos', 'status', 'ai_diagnosis', 'repair_estimate'];
 
     protected $attributes = ['status' => 'ouvert'];
 
     protected function casts(): array
     {
-        return ['photos' => 'array'];
+        return ['photos' => 'array', 'ai_diagnosis' => 'array', 'repair_estimate' => 'array'];
+    }
+
+    /** Date the equipment should be available again, from the ML estimate. */
+    public function estimatedReadyOn(): ?\Illuminate\Support\Carbon
+    {
+        return isset($this->repair_estimate['days']) ? $this->created_at->copy()->addDays($this->repair_estimate['days']) : null;
+    }
+
+    /** True when the diagnosis thinks the reporter under-estimated the problem. */
+    public function severityUnderestimated(): bool
+    {
+        $order = array_flip(array_keys(self::SEVERITIES));
+        $suggested = $this->ai_diagnosis['severity'] ?? null;
+
+        return $suggested !== null && ($order[$suggested] ?? 0) > ($order[$this->severity] ?? 0);
     }
 
     public function equipment(): BelongsTo
