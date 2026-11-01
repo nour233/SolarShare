@@ -3,11 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordLink;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
@@ -110,36 +113,41 @@ class User extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
-        $this->notify(new \App\Notifications\ResetPasswordLink($token));
+        $this->notify(new ResetPasswordLink($token));
     }
 
-    public function equipments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function equipments(): HasMany
     {
         return $this->hasMany(Equipment::class, 'owner_id');
     }
 
-    public function incidents(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function incidents(): HasMany
     {
         return $this->hasMany(Incident::class);
     }
 
-    public function rentals(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function rentals(): HasMany
     {
         return $this->hasMany(Rental::class, 'renter_id');
     }
 
-    public function reclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function reclamations(): HasMany
     {
         return $this->hasMany(Reclamation::class);
     }
 
-    public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    public function passkeys(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function passkeys(): HasMany
     {
         return $this->hasMany(Passkey::class);
+    }
+
+    public function logisticsPreference(): HasOne
+    {
+        return $this->hasOne(UserLogisticsPreference::class);
     }
 }
