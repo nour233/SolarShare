@@ -37,3 +37,68 @@ body{background:#f5f7f5;color:var(--ink);font-family:'Segoe UI',Arial,sans-serif
 .ai-card{border-left:4px solid #9a78d6}.ai-card .section-kicker{color:#8a66c8}.ai-alert{padding:10px 14px;border-radius:10px;background:#fff6e6;color:#8a5a12;font-size:13px}.ai-alert.is-danger{background:#fdecec;color:#a23b3b}.ai-facts dd{margin-bottom:12px}.ai-note{padding:12px 16px;border-radius:12px;background:#eee8fa;color:#6a4c9c;font-size:13px}.ai-note a{color:#5b3d8f;font-weight:700}
 /* Repair time ML model. */
 .ml-kpi strong{display:block;font-size:1.7rem;color:#247a56;margin:4px 0 6px}.ml-bar-row{margin-bottom:12px}.ml-bar{height:9px;border-radius:9px;background:#eef2ef;margin-top:5px;overflow:hidden}.ml-bar span{display:block;height:100%;border-radius:9px;background:#b9c7bf}.ml-bar span.is-ours,.ml-kpi+.ml-bar span{background:#247a56}.ml-word{padding:4px 10px;border-radius:20px;background:#eef6f1;color:#247a56;font-size:12px;font-weight:600}.ml-word small{color:#7a8981;font-weight:400}.ml-estimate{font-size:1.8rem;font-weight:700;color:#247a56}
+
+/* Reservation administration actions. */
+.admin-rental-list .admin-rental-filters .btn { display:inline-flex; align-items:center; gap:7px; border:1px solid #dfe8e2; border-radius:22px; padding:9px 15px; background:#fff; color:#73867a; font-size:12px; font-weight:600; box-shadow:none; transition:.18s; }
+.admin-rental-list .admin-rental-filters .btn-dark { background:#e4f1e8; color:#246b46; border-color:#b6d6c2; }
+.admin-rental-list .admin-rental-filters .btn:hover { background:#edf5ef; border-color:#b6d6c2; color:#246b46; }
+.admin-rental-list .admin-rental-filters .badge { display:inline-grid; place-items:center; min-width:21px; height:21px; border-radius:50%; font-size:10px; opacity:.85; margin:0!important; }
+.admin-rental-list .add-button { border-radius:12px; background:#237b54; color:#fff; padding:13px 20px; font-size:12px; font-weight:700; box-shadow:0 4px 12px #237b5415; }
+.admin-rental-list .add-button:hover { background:#1b6543; color:#fff; }
+.admin-rental-list .actions { gap:8px; align-items:center; }
+.admin-rental-list .actions .btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border-radius:10px; font-size:13px; box-shadow:none; transition:.18s; }
+.admin-rental-list .actions .btn-outline-success { background:#eaf5ee; border:1px solid #d3e8db; color:#33815a; }
+.admin-rental-list .actions .btn-outline-success:hover { background:#d9eee1; border-color:#aacfb8; }
+.admin-rental-list .actions .btn-outline-secondary { background:#eef1f8; border:1px solid #dce2f0; color:#697ca2; }
+.admin-rental-list .actions .btn-outline-secondary:hover { background:#e1e7f5; border-color:#becbe5; }
+.admin-rental-list .actions .btn-outline-danger { background:#fff0f2; border:1px solid #f2dbe0; color:#b5606d; }
+.admin-rental-list .actions .btn-outline-danger:hover { background:#ffe0e6; border-color:#e7b7c3; }
+.admin-rental-list .actions form { margin:0; }
+.admin-rental-list .btn:focus-visible { outline:3px solid #9ac7ae; outline-offset:3px; }
+
+/* Matching delivery administration buttons. */
+/* Reservation administration actions. */
+.admin-delivery-list .admin-rental-filters .btn { display:inline-flex; align-items:center; gap:7px; border:1px solid #dfe8e2; border-radius:22px; padding:9px 15px; background:#fff; color:#73867a; font-size:12px; font-weight:600; box-shadow:none; transition:.18s; }
+.admin-delivery-list .admin-rental-filters .btn-dark { background:#e4f1e8; color:#246b46; border-color:#b6d6c2; }
+.admin-delivery-list .admin-rental-filters .btn:hover { background:#edf5ef; border-color:#b6d6c2; color:#246b46; }
+.admin-delivery-list .admin-rental-filters .badge { display:inline-grid; place-items:center; min-width:21px; height:21px; border-radius:50%; font-size:10px; opacity:.85; margin:0!important; }
+.admin-delivery-list .add-button { border-radius:12px; background:#237b54; color:#fff; padding:13px 20px; font-size:12px; font-weight:700; box-shadow:0 4px 12px #237b5415; }
+.admin-delivery-list .add-button:hover { background:#1b6543; color:#fff; }
+.admin-delivery-list .actions { gap:8px; align-items:center; }
+.admin-delivery-list .actions .btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border-radius:10px; font-size:13px; box-shadow:none; transition:.18s; }
+.admin-delivery-list .actions .btn-outline-success { background:#eaf5ee; border:1px solid #d3e8db; color:#33815a; }
+.admin-delivery-list .actions .btn-outline-success:hover { background:#d9eee1; border-color:#aacfb8; }
+.admin-delivery-list .actions .btn-outline-secondary { background:#eef1f8; border:1px solid #dce2f0; color:#697ca2; }
+.admin-delivery-list .actions .btn-outline-secondary:hover { background:#e1e7f5; border-color:#becbe5; }
+.admin-delivery-list .actions .btn-outline-danger { background:#fff0f2; border:1px solid #f2dbe0; color:#b5606d; }
+.admin-delivery-list .actions .btn-outline-danger:hover { background:#ffe0e6; border-color:#e7b7c3; }
+.admin-delivery-list .actions form { margin:0; }
+.admin-delivery-list .btn:focus-visible { outline:3px solid #9ac7ae; outline-offset:3px; }
+
+.admin-delivery-list .catalog-intro .btn-outline-success { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:12px 18px; border-radius:12px; background:#edf5f0; border:1px solid #cfe2d7; color:#347655; font-size:12px; font-weight:700; }
+.admin-delivery-list .catalog-intro .btn-outline-success:hover { background:#deeee4; border-color:#aaccb8; color:#245c40; }
+
+/* Pickup point administration buttons. */
+/* Reservation administration actions. */
+.admin-pickup-list .admin-rental-filters .btn { display:inline-flex; align-items:center; gap:7px; border:1px solid #dfe8e2; border-radius:22px; padding:9px 15px; background:#fff; color:#73867a; font-size:12px; font-weight:600; box-shadow:none; transition:.18s; }
+.admin-pickup-list .admin-rental-filters .btn-dark { background:#e4f1e8; color:#246b46; border-color:#b6d6c2; }
+.admin-pickup-list .admin-rental-filters .btn:hover { background:#edf5ef; border-color:#b6d6c2; color:#246b46; }
+.admin-pickup-list .admin-rental-filters .badge { display:inline-grid; place-items:center; min-width:21px; height:21px; border-radius:50%; font-size:10px; opacity:.85; margin:0!important; }
+.admin-pickup-list .add-button { border-radius:12px; background:#237b54; color:#fff; padding:13px 20px; font-size:12px; font-weight:700; box-shadow:0 4px 12px #237b5415; }
+.admin-pickup-list .add-button:hover { background:#1b6543; color:#fff; }
+.admin-pickup-list .actions { gap:8px; align-items:center; }
+.admin-pickup-list .actions .btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border-radius:10px; font-size:13px; box-shadow:none; transition:.18s; }
+.admin-pickup-list .actions .btn-outline-success { background:#eaf5ee; border:1px solid #d3e8db; color:#33815a; }
+.admin-pickup-list .actions .btn-outline-success:hover { background:#d9eee1; border-color:#aacfb8; }
+.admin-pickup-list .actions .btn-outline-secondary { background:#eef1f8; border:1px solid #dce2f0; color:#697ca2; }
+.admin-pickup-list .actions .btn-outline-secondary:hover { background:#e1e7f5; border-color:#becbe5; }
+.admin-pickup-list .actions .btn-outline-danger { background:#fff0f2; border:1px solid #f2dbe0; color:#b5606d; }
+.admin-pickup-list .actions .btn-outline-danger:hover { background:#ffe0e6; border-color:#e7b7c3; }
+.admin-pickup-list .actions form { margin:0; }
+.admin-pickup-list .btn:focus-visible { outline:3px solid #9ac7ae; outline-offset:3px; }
+
+
+.admin-pickup-list .pickup-search-group { gap:8px; align-items:stretch; }
+.admin-pickup-list .pickup-search-group .form-control { border-radius:11px!important; border:1px solid #dce7df; min-height:44px; font-size:12px; padding:11px 14px; background:white; }
+.admin-pickup-list .pickup-search-group .btn { border-radius:11px!important; margin:0!important; padding:11px 16px; border:1px solid #cee3d5; background:#eaf4ee; color:#367654; font-size:12px; font-weight:600; }
+.admin-pickup-list .pickup-search-group .btn:hover { background:#dceee2; border-color:#accfb9; color:#225e3c; }

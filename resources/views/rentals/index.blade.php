@@ -2,19 +2,19 @@
 @section('title', 'Mes réservations')
 
 @section('content')
-<div class="container py-5">
+<div class="container py-5 rental-list-page">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <h2 class="mb-0">Mes réservations</h2>
             <p class="text-muted mb-0">Retrouvez toutes vos demandes de location.</p>
         </div>
-        <a href="{{ route('equipments.index') }}" class="btn" style="background:#278658;color:white">
+        <a href="{{ route('equipments.index') }}" class="btn rental-browse-btn">
             <i class="fa fa-search me-2"></i>Parcourir les équipements
         </a>
     </div>
 
     {{-- Status filter --}}
-    <div class="d-flex flex-wrap gap-2 mb-4">
+    <div class="d-flex flex-wrap gap-2 mb-4 rental-status-filters">
         <a href="{{ route('rentals.index') }}"
            class="btn btn-sm {{ !$status ? 'btn-dark' : 'btn-outline-secondary' }}">
             Toutes
@@ -61,15 +61,20 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex gap-2 mt-3 flex-wrap rental-list-actions">
                 <a href="{{ route('rentals.show', $rental) }}" class="btn btn-sm btn-outline-success">
-                    Voir le détail
+                    <i class="far fa-eye me-2" aria-hidden="true"></i>Voir le détail
                 </a>
+                @if(! in_array($rental->status, ['returned', 'cancelled'], true) && $rental->end_date->greaterThanOrEqualTo(today()))
+                    <a href="{{ route('rentals.smart-pickup', $rental) }}" class="btn btn-sm rental-pickup-btn">
+                        <i class="fa fa-star me-1"></i>Trouver le meilleur point de retrait
+                    </a>
+                @endif
                 @if($rental->isPending())
                 <form method="POST" action="{{ route('rentals.cancel', $rental) }}"
                       onsubmit="return confirm('Annuler cette réservation ?')" class="m-0">
                     @csrf @method('PATCH')
-                    <button class="btn btn-sm btn-outline-danger">Annuler</button>
+                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times me-2" aria-hidden="true"></i>Annuler</button>
                 </form>
                 @endif
             </div>
@@ -80,7 +85,7 @@
         <i class="fa fa-calendar-alt" style="font-size:2.5rem;color:#c8e6c9"></i>
         <h5 class="mt-3">Aucune réservation</h5>
         <p class="text-muted">Vous n'avez pas encore fait de demande de location.</p>
-        <a href="{{ route('equipments.index') }}" class="btn" style="background:#278658;color:white">
+        <a href="{{ route('equipments.index') }}" class="btn rental-browse-btn">
             Explorer les équipements
         </a>
     </div>

@@ -5,13 +5,7 @@
 @section('content')
 <div class="container py-5" style="max-width:760px">
 
-    <a
-        href="{{ route('rentals.index') }}"
-        class="d-inline-block mb-4 text-decoration-none"
-        style="color:#278658"
-    >
-        ← Mes réservations
-    </a>
+
 
     @if(session('status'))
         <div class="alert alert-success">
@@ -407,6 +401,21 @@
 
                 <div class="d-flex gap-2 flex-wrap">
 
+                    @if(
+                        $delivery->type === 'pickup'
+                        && $delivery->status === 'planned'
+                        && ! in_array($rental->status, ['returned', 'cancelled'], true)
+                    )
+                        <a
+                            href="{{ route('rentals.smart-pickup', $rental) }}"
+                            class="btn btn-sm text-white"
+                            style="background:#278658"
+                        >
+                            <i class="fa fa-map-marker-alt me-1"></i>
+                            Trouver un meilleur créneau
+                        </a>
+                    @endif
+
                     <a
                         href="{{ route('deliveries.edit', $delivery) }}"
                         class="btn btn-sm btn-outline-success"
@@ -462,6 +471,15 @@
                         <i class="fa fa-plus me-2"></i>
                         Choisir la livraison
                     </a>
+                    @if(! in_array($rental->status, ['returned', 'cancelled'], true))
+                        <a
+                            href="{{ route('rentals.smart-pickup', $rental) }}"
+                            class="btn btn-outline-success mt-2"
+                        >
+                            <i class="fa fa-star me-2"></i>
+                            Trouver le meilleur point de retrait
+                        </a>
+                    @endif
                 </div>
 
             @endif

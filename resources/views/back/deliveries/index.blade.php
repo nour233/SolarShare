@@ -3,6 +3,7 @@
 @section('title', 'Livraisons')
 
 @section('content')
+<div class="admin-delivery-list">
 
 <div class="catalog-intro">
     <div>
@@ -19,13 +20,22 @@
         </p>
     </div>
 
-    <a
-        href="{{ route('admin.deliveries.create') }}"
-        class="btn btn-primary add-button"
-    >
-        <i class="fa fa-plus me-2"></i>
-        Nouvelle livraison
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a
+            href="{{ route('admin.deliveries.smart-pickup') }}"
+            class="btn btn-outline-success"
+        >
+            <i class="fa fa-star me-2"></i>
+            SmartPickup
+        </a>
+        <a
+            href="{{ route('admin.deliveries.create') }}"
+            class="btn btn-primary add-button"
+        >
+            <i class="fa fa-plus me-2"></i>
+            Nouvelle livraison
+        </a>
+    </div>
 </div>
 
 
@@ -39,7 +49,7 @@
 
 {{-- Status filters --}}
 
-<div class="d-flex flex-wrap gap-2 mb-4">
+<div class="d-flex flex-wrap gap-2 mb-4 admin-rental-filters">
 
     <a
         href="{{ route('admin.deliveries.index') }}"
@@ -358,4 +368,5 @@
     {{ $deliveries->links('pagination::bootstrap-5') }}
 </div>
 
+</div>
 @endsection

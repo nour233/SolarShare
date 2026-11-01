@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\Admin\PickupPointRequest;
 use App\Http\Controllers\Controller;
 use App\Models\PickupPoint;
+use App\Services\PickupPointOperationsService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class PickupPointController extends Controller
@@ -79,6 +83,7 @@ class PickupPointController extends Controller
     public function create()
     {
         $pickupPoint = new PickupPoint();
+        $pickupPoint->setRelation('openingHours', collect());
 
         return view(
             'back.pickup-points.form',
@@ -90,11 +95,19 @@ class PickupPointController extends Controller
     /**
      * Store a new pickup point.
      */
-    public function store(Request $request)
+    public function store(PickupPointRequest $request)
     {
-        $validated = $this->validatePickupPoint($request);
+        $validated = $request->validated();
+        $schedule = $validated['weekly_schedule'] ?? null;
+        unset($validated['weekly_schedule']);
 
-        PickupPoint::create($validated);
+        DB::transaction(function () use ($validated, $schedule): void {
+            $pickupPoint = PickupPoint::create($validated);
+
+            if (is_array($schedule)) {
+                $this->syncOpeningHours($pickupPoint, $schedule);
+            }
+        });
 
         return redirect()
             ->route('admin.pickup-points.index')
@@ -108,13 +121,36 @@ class PickupPointController extends Controller
     /**
      * Show pickup point details.
      */
-    public function show(PickupPoint $pickupPoint)
+    public function show(
+        Request $request,
+        PickupPoint $pickupPoint,
+        PickupPointOperationsService $operations
+    )
     {
-        $pickupPoint->loadCount('deliveries');
+        $request->validate([
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+        $date = $request->query('date', now()->toDateString());
+
+        $pickupPoint->load([
+            'openingHours',
+            'closures' => fn ($query) => $query
+                ->where(function ($query) use ($date) {
+                    $query->whereDate('closure_date', '>=', today())
+                        ->orWhereDate('closure_date', $date);
+                })
+                ->orderBy('closure_date'),
+        ])->loadCount('deliveries');
+
+        $capacity = $operations->utilizationForDate(
+            collect([$pickupPoint]),
+            Carbon::parse($date)
+        )[$pickupPoint->id];
+        $isOpenNow = $operations->isOpenAt($pickupPoint, now());
 
         return view(
             'back.pickup-points.show',
-            compact('pickupPoint')
+            compact('pickupPoint', 'capacity', 'date', 'isOpenNow')
         );
     }
 
@@ -124,6 +160,8 @@ class PickupPointController extends Controller
      */
     public function edit(PickupPoint $pickupPoint)
     {
+        $pickupPoint->load('openingHours');
+
         return view(
             'back.pickup-points.form',
             compact('pickupPoint')
@@ -135,12 +173,20 @@ class PickupPointController extends Controller
      * Update pickup point.
      */
     public function update(
-        Request $request,
+        PickupPointRequest $request,
         PickupPoint $pickupPoint
     ) {
-        $validated = $this->validatePickupPoint($request);
+        $validated = $request->validated();
+        $schedule = $validated['weekly_schedule'] ?? null;
+        unset($validated['weekly_schedule']);
 
-        $pickupPoint->update($validated);
+        DB::transaction(function () use ($pickupPoint, $validated, $schedule): void {
+            $pickupPoint->update($validated);
+
+            if (is_array($schedule)) {
+                $this->syncOpeningHours($pickupPoint, $schedule);
+            }
+        });
 
         return redirect()
             ->route('admin.pickup-points.index')
@@ -167,149 +213,27 @@ class PickupPointController extends Controller
     }
 
 
-    /**
-     * Backend validation for create and update.
-     */
-    private function validatePickupPoint(Request $request): array
+    private function syncOpeningHours(PickupPoint $pickupPoint, array $schedule): void
     {
-        return $request->validate(
-            [
-                'name' => [
-                    'required',
-                    'string',
-                    'min:3',
-                    'max:255',
-                ],
+        $pickupPoint->openingHours()->delete();
 
-                'city' => [
-                    'required',
-                    'string',
-                    'min:2',
-                    'max:255',
-                ],
+        foreach (range(1, 7) as $day) {
+            $dayData = $schedule[$day] ?? [];
+            if (filter_var($dayData['closed'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                continue;
+            }
 
-                'address' => [
-                    'required',
-                    'string',
-                    'min:5',
-                    'max:255',
-                ],
+            foreach ($dayData['intervals'] ?? [] as $interval) {
+                if (! filled($interval['opens_at'] ?? null) || ! filled($interval['closes_at'] ?? null)) {
+                    continue;
+                }
 
-                'latitude' => [
-                    'required',
-                    'numeric',
-                    'between:-90,90',
-                ],
-
-                'longitude' => [
-                    'required',
-                    'numeric',
-                    'between:-180,180',
-                ],
-
-                'opening_hours' => [
-                    'required',
-                    'string',
-                    'min:3',
-                    'max:255',
-                ],
-
-                'capacity' => [
-                    'required',
-                    'integer',
-                    'min:1',
-                    'max:10000',
-                ],
-
-                'status' => [
-                    'required',
-                    'in:active,inactive',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | French validation messages
-            |--------------------------------------------------------------------------
-            */
-
-            [
-                'name.required' =>
-                    'Le nom du point de retrait est obligatoire.',
-
-                'name.min' =>
-                    'Le nom doit contenir au moins 3 caractères.',
-
-                'name.max' =>
-                    'Le nom ne peut pas dépasser 255 caractères.',
-
-
-                'city.required' =>
-                    'La ville est obligatoire.',
-
-                'city.min' =>
-                    'La ville doit contenir au moins 2 caractères.',
-
-                'city.max' =>
-                    'La ville ne peut pas dépasser 255 caractères.',
-
-
-                'address.required' =>
-                    'L’adresse est obligatoire.',
-
-                'address.min' =>
-                    'L’adresse doit contenir au moins 5 caractères.',
-
-                'address.max' =>
-                    'L’adresse ne peut pas dépasser 255 caractères.',
-
-
-                'latitude.required' =>
-                    'Veuillez sélectionner un emplacement sur la carte.',
-
-                'latitude.numeric' =>
-                    'La latitude doit être valide.',
-
-                'latitude.between' =>
-                    'La latitude doit être comprise entre -90 et 90.',
-
-
-                'longitude.required' =>
-                    'Veuillez sélectionner un emplacement sur la carte.',
-
-                'longitude.numeric' =>
-                    'La longitude doit être valide.',
-
-                'longitude.between' =>
-                    'La longitude doit être comprise entre -180 et 180.',
-
-
-                'opening_hours.required' =>
-                    'Les horaires d’ouverture sont obligatoires.',
-
-                'opening_hours.min' =>
-                    'Veuillez saisir des horaires valides.',
-
-
-                'capacity.required' =>
-                    'La capacité est obligatoire.',
-
-                'capacity.integer' =>
-                    'La capacité doit être un nombre entier.',
-
-                'capacity.min' =>
-                    'La capacité doit être supérieure à 0.',
-
-                'capacity.max' =>
-                    'La capacité ne peut pas dépasser 10 000.',
-
-
-                'status.required' =>
-                    'Le statut est obligatoire.',
-
-                'status.in' =>
-                    'Le statut sélectionné est invalide.',
-            ]
-        );
+                $pickupPoint->openingHours()->create([
+                    'day_of_week' => $day,
+                    'opens_at' => $interval['opens_at'],
+                    'closes_at' => $interval['closes_at'],
+                ]);
+            }
+        }
     }
 }

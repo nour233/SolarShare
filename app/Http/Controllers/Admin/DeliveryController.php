@@ -6,11 +6,105 @@ use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\PickupPoint;
 use App\Models\Rental;
+use App\Services\DeliveryBookingService;
+use App\Services\DeliveryStatusService;
+use App\Services\SmartPickupRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class DeliveryController extends Controller
 {
+    public function smartPickup(
+        Request $request,
+        \App\Http\Controllers\SmartPickupController $smartPickup,
+        SmartPickupRecommendationService $recommendations
+    ) {
+        $validated = $smartPickup->validateSearch($request);
+        $rental = isset($validated['rental_id'])
+            ? Rental::findOrFail($validated['rental_id'])
+            : null;
+        $results = [];
+
+        if ($rental && isset($validated['date'])) {
+            $results = $recommendations->recommend(
+                $rental,
+                \Carbon\Carbon::createFromFormat('Y-m-d', $validated['date']),
+                $validated['preferred_time'] ?? null,
+                isset($validated['latitude']) ? (float) $validated['latitude'] : null,
+                isset($validated['longitude']) ? (float) $validated['longitude'] : null
+            );
+        }
+
+        $rentals = Rental::query()
+            ->whereNotIn('status', ['returned', 'cancelled'])
+            ->with('equipment')
+            ->latest()
+            ->limit(100)
+            ->get();
+        if ($rental && ! $rentals->contains('id', $rental->id)) {
+            $rentals->prepend($rental->load('equipment'));
+        }
+
+        return view('smart-pickup.index', [
+            'rental' => $rental?->load('equipment'),
+            'rentals' => $rentals,
+            'results' => $results,
+            'isAdmin' => true,
+            'formRoute' => route('admin.deliveries.smart-pickup'),
+            'confirmRoute' => route('admin.deliveries.smart-pickup.confirm'),
+            'selectedDate' => $validated['date'] ?? '',
+            'preferredTime' => $validated['preferred_time'] ?? '',
+            'latitude' => $validated['latitude'] ?? '',
+            'longitude' => $validated['longitude'] ?? '',
+        ]);
+    }
+
+    public function confirmSmartPickup(
+        Request $request,
+        \App\Http\Controllers\SmartPickupController $smartPickup,
+        SmartPickupRecommendationService $recommendations
+    ) {
+        $selection = $smartPickup->validateSelection($request);
+        $rental = Rental::findOrFail($selection['rental_id']);
+        $recommendation = $smartPickup->findAvailableSelection($rental, $selection, $recommendations);
+        $delivery = $rental->deliveries()
+            ->where('type', 'pickup')
+            ->where('status', 'planned')
+            ->latest('id')
+            ->first();
+
+        return view('smart-pickup.confirmation', [
+            'rental' => $rental->load('equipment'),
+            'recommendation' => $recommendation,
+            'selectedTime' => $selection['scheduled_time'],
+            'isAdmin' => true,
+            'bookRoute' => route('admin.deliveries.smart-pickup.book'),
+            'deliveryFee' => $delivery?->delivery_fee ?? 0,
+            'selection' => $selection,
+        ]);
+    }
+
+    public function bookSmartPickup(
+        Request $request,
+        \App\Http\Controllers\SmartPickupController $smartPickup,
+        DeliveryBookingService $booking
+    ) {
+        $selection = $smartPickup->validateSelection($request);
+        $request->validate(['confirmed' => ['required', 'accepted']]);
+        $rental = Rental::findOrFail($selection['rental_id']);
+        $result = $booking->bookPickup(
+            $rental,
+            (int) $selection['pickup_point_id'],
+            $selection['date'],
+            $selection['scheduled_time'],
+            $request->user()
+        );
+
+        return redirect()
+            ->route('admin.deliveries.show', $result['delivery'])
+            ->with('success', $result['changed'] ? 'Rendez-vous de retrait planifié.' : 'Ce rendez-vous était déjà planifié.');
+    }
+
     public function index(Request $request)
     {
         $query = Delivery::with([
@@ -104,21 +198,25 @@ class DeliveryController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(Request $request, DeliveryBookingService $booking)
     {
         $validated = $this->validateDelivery($request);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Home delivery has no pickup point
-        |--------------------------------------------------------------------------
-        */
-
-        if ($validated['type'] === 'home_delivery') {
-            $validated['pickup_point_id'] = null;
+        if ($validated['type'] === 'pickup') {
+            $booking->bookPickup(
+                Rental::findOrFail($validated['rental_id']),
+                (int) $validated['pickup_point_id'],
+                $validated['scheduled_date'],
+                $validated['scheduled_time'],
+                $request->user(),
+                deliveryFee: (float) $validated['delivery_fee']
+            );
+        } else {
+            $booking->saveHomeDelivery(
+                Rental::findOrFail($validated['rental_id']),
+                $validated
+            );
         }
-
-        Delivery::create($validated);
 
         return redirect()
             ->route('admin.deliveries.index')
@@ -129,18 +227,47 @@ class DeliveryController extends Controller
     }
 
 
-    public function show(Delivery $delivery)
+    public function show(Delivery $delivery, DeliveryStatusService $statusService)
     {
         $delivery->load([
             'rental.equipment',
             'rental.renter',
             'pickupPoint',
+            'statusHistories.user',
         ]);
+
+        $allowedNextStatuses = $statusService->allowedNextStatuses($delivery);
+        $lastStatusUpdate = $delivery->statusHistories->last()?->created_at ?? $delivery->created_at;
 
         return view(
             'back.deliveries.show',
-            compact('delivery')
+            compact('delivery', 'allowedNextStatuses', 'lastStatusUpdate')
         );
+    }
+
+    public function updateStatus(
+        Request $request,
+        Delivery $delivery,
+        DeliveryStatusService $statusService
+    ) {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['planned', 'in_transit', 'delivered', 'returned'])],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $changed = $statusService->transition(
+            $delivery,
+            $validated['status'],
+            $request->user(),
+            $validated['comment'] ?? null
+        );
+
+        return redirect()
+            ->route('admin.deliveries.show', $delivery)
+            ->with(
+                'success',
+                $changed ? 'Statut de la livraison mis à jour.' : 'Cette livraison possède déjà ce statut.'
+            );
     }
 
 
@@ -171,17 +298,33 @@ class DeliveryController extends Controller
     }
 
 
-    public function update(
-        Request $request,
-        Delivery $delivery
-    ) {
+    public function update(Request $request, Delivery $delivery, DeliveryBookingService $booking)
+    {
         $validated = $this->validateDelivery($request);
 
-        if ($validated['type'] === 'home_delivery') {
-            $validated['pickup_point_id'] = null;
-        }
+        if ($validated['type'] === 'pickup') {
+            if ($delivery->type !== 'pickup') {
+                return back()->withInput()->withErrors([
+                    'type' => 'Une livraison à domicile ne peut pas être convertie implicitement en retrait.',
+                ]);
+            }
 
-        $delivery->update($validated);
+            $booking->bookPickup(
+                Rental::findOrFail($validated['rental_id']),
+                (int) $validated['pickup_point_id'],
+                $validated['scheduled_date'],
+                $validated['scheduled_time'],
+                $request->user(),
+                $delivery,
+                (float) $validated['delivery_fee']
+            );
+        } else {
+            $booking->saveHomeDelivery(
+                Rental::findOrFail($validated['rental_id']),
+                $validated,
+                $delivery
+            );
+        }
 
         return redirect()
             ->route('admin.deliveries.index')
@@ -255,15 +398,6 @@ class DeliveryController extends Controller
                     'max:10000',
                 ],
 
-                'status' => [
-                    'required',
-                    Rule::in([
-                        'planned',
-                        'in_transit',
-                        'delivered',
-                        'returned',
-                    ]),
-                ],
             ],
 
             [

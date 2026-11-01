@@ -285,6 +285,21 @@ Route::middleware('auth')->group(function () {
         [RentalController::class, 'show']
     )->name('rentals.show');
 
+    Route::get(
+        '/rentals/{rental}/smart-pickup',
+        [\App\Http\Controllers\SmartPickupController::class, 'index']
+    )->name('rentals.smart-pickup');
+
+    Route::get(
+        '/rentals/{rental}/smart-pickup/confirm',
+        [\App\Http\Controllers\SmartPickupController::class, 'confirm']
+    )->name('rentals.smart-pickup.confirm');
+
+    Route::post(
+        '/rentals/{rental}/smart-pickup/book',
+        [\App\Http\Controllers\SmartPickupController::class, 'book']
+    )->name('rentals.smart-pickup.book');
+
     Route::patch(
         '/rentals/{rental}/cancel',
         [RentalController::class, 'cancel']
@@ -442,6 +457,26 @@ Route::middleware(['auth', 'admin'])
         |--------------------------------------------------------------------------
         */
 
+        Route::get(
+            'pickup-points/capacity',
+            \App\Http\Controllers\Admin\PickupPointCapacityController::class
+        )->name('admin.pickup-points.capacity');
+
+        Route::post(
+            'pickup-points/{pickupPoint}/closures',
+            [\App\Http\Controllers\Admin\PickupPointClosureController::class, 'store']
+        )->name('admin.pickup-points.closures.store');
+
+        Route::put(
+            'pickup-points/{pickupPoint}/closures/{closure}',
+            [\App\Http\Controllers\Admin\PickupPointClosureController::class, 'update']
+        )->name('admin.pickup-points.closures.update');
+
+        Route::delete(
+            'pickup-points/{pickupPoint}/closures/{closure}',
+            [\App\Http\Controllers\Admin\PickupPointClosureController::class, 'destroy']
+        )->name('admin.pickup-points.closures.destroy');
+
         Route::resource(
             'pickup-points',
             \App\Http\Controllers\Admin\PickupPointController::class
@@ -454,10 +489,30 @@ Route::middleware(['auth', 'admin'])
         |--------------------------------------------------------------------------
         */
 
+        Route::get(
+            'deliveries/smart-pickup/confirm',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'confirmSmartPickup']
+        )->name('admin.deliveries.smart-pickup.confirm');
+
+        Route::post(
+            'deliveries/smart-pickup/book',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'bookSmartPickup']
+        )->name('admin.deliveries.smart-pickup.book');
+
+        Route::get(
+            'deliveries/smart-pickup',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'smartPickup']
+        )->name('admin.deliveries.smart-pickup');
+
         Route::resource(
             'deliveries',
             \App\Http\Controllers\Admin\DeliveryController::class
         )->names('admin.deliveries');
+
+        Route::patch(
+            'deliveries/{delivery}/status',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'updateStatus']
+        )->name('admin.deliveries.status');
 
 
         /*
