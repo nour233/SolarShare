@@ -47,7 +47,11 @@ class PickupPointOperationsService
      *
      * @return array<int, array<string, mixed>>
      */
-    public function utilizationForDate(Collection $pickupPoints, CarbonInterface $date): array
+    public function utilizationForDate(
+        Collection $pickupPoints,
+        CarbonInterface $date,
+        ?int $excludeRentalId = null
+    ): array
     {
         if ($pickupPoints->isEmpty()) {
             return [];
@@ -59,6 +63,7 @@ class PickupPointOperationsService
             ->where('type', 'pickup')
             ->whereDate('scheduled_date', $date->format('Y-m-d'))
             ->whereIn('status', self::CAPACITY_STATUSES)
+            ->when($excludeRentalId !== null, fn ($query) => $query->where('rental_id', '!=', $excludeRentalId))
             ->orderBy('id')
             ->get(['id', 'rental_id', 'pickup_point_id', 'scheduled_time']);
 
@@ -84,6 +89,38 @@ class PickupPointOperationsService
         }
 
         return $result;
+    }
+
+    /**
+     * Return only slots with capacity remaining, excluding slots already past.
+     *
+     * @return list<array{start: string, end: string, reserved: int, capacity: int, remaining: int, occupancy_percent: int}>
+     */
+    public function availableSlotsForDate(
+        PickupPoint $pickupPoint,
+        CarbonInterface $date,
+        ?int $excludeRentalId = null,
+        ?CarbonInterface $now = null
+    ): array {
+        $now ??= Carbon::now(config('app.timezone'));
+        $date = Carbon::parse($date->format('Y-m-d'), config('app.timezone'));
+        $utilization = $this->utilizationForDate(
+            collect([$pickupPoint->loadMissing(['openingHours', 'closures'])]),
+            $date,
+            $excludeRentalId
+        )[$pickupPoint->id];
+
+        return array_values(array_filter(
+            array_map(function (array $slot) use ($date, $now): array {
+                $slotDateTime = $date->copy()->setTimeFromTimeString($slot['start']);
+                $slot['remaining'] = max(0, $slot['capacity'] - $slot['reserved']);
+                $slot['start_at'] = $slotDateTime->toIso8601String();
+
+                return $slot;
+            }, $utilization['slots']),
+            fn (array $slot) => $slot['remaining'] > 0
+                && Carbon::parse($slot['start_at'])->greaterThan($now)
+        ));
     }
 
     private function calculatePointUtilization(
