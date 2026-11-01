@@ -17,6 +17,7 @@
 </div>
 <a href="#informations"><i class="far fa-user" aria-hidden="true"></i>Informations</a>
 <a href="#mot-de-passe"><i class="fas fa-key" aria-hidden="true"></i>Mot de passe</a>
+@unless($user->isAdmin())<a href="#preferences-retrait"><i class="fas fa-map-marker-alt" aria-hidden="true"></i>Préférences de retrait</a>@endunless
 <a href="#visage"><i class="fas fa-camera" aria-hidden="true"></i>Connexion par visage</a>
 <a href="#securite"><i class="fas fa-shield-alt" aria-hidden="true"></i>Double authentification @if($user->hasTwoFactorEnabled())<span class="profile-dot" title="Activée"></span>@endif</a>
 @unless($user->isAdmin())<a href="#suppression" class="text-danger"><i class="far fa-trash-alt" aria-hidden="true"></i>Supprimer le compte</a>@endunless
@@ -56,6 +57,57 @@
 <button class="btn btn-primary mt-4" type="submit">Changer le mot de passe</button>
 </form>
 </section>
+
+@unless($user->isAdmin())
+<section class="profile-card" id="preferences-retrait">
+<h2>Mes préférences de retrait</h2>
+<p class="text-muted">Choisissez vos options habituelles. Elles guideront les recommandations SmartPickup, sans réserver de créneau ni empêcher un autre choix.</p>
+@php($errs = $errors->logisticsPreferences)
+<form method="POST" action="{{ route('profile.logistics-preferences.update') }}">
+@csrf @method('PUT')
+<div class="row g-3">
+<div class="col-md-6">
+<label class="form-label" for="preferred_pickup_point_id">Point de retrait favori</label>
+<select class="form-select @if($errs->has('preferred_pickup_point_id')) is-invalid @endif" id="preferred_pickup_point_id" name="preferred_pickup_point_id">
+<option value="">Aucun point préféré</option>
+@if($logisticsPreference?->preferredPickupPoint && $logisticsPreference->preferredPickupPoint->status !== 'active')
+<option value="{{ $logisticsPreference->preferred_pickup_point_id }}" selected>{{ $logisticsPreference->preferredPickupPoint->name }} — indisponible</option>
+@endif
+@foreach($pickupPoints as $point)
+<option value="{{ $point->id }}" @selected((string) old('preferred_pickup_point_id', $logisticsPreference?->preferred_pickup_point_id) === (string) $point->id)>{{ $point->name }} — {{ $point->city }}</option>
+@endforeach
+</select>
+@if($errs->has('preferred_pickup_point_id'))<div class="invalid-feedback">{{ $errs->first('preferred_pickup_point_id') }}</div>@endif
+</div>
+<div class="col-md-3">
+<label class="form-label" for="preferred_start_time">Heure de début préférée</label>
+<input class="form-control @if($errs->has('preferred_start_time')) is-invalid @endif" type="time" id="preferred_start_time" name="preferred_start_time" value="{{ old('preferred_start_time', $logisticsPreference?->preferred_start_time ? substr($logisticsPreference->preferred_start_time, 0, 5) : '') }}">
+@if($errs->has('preferred_start_time'))<div class="invalid-feedback">{{ $errs->first('preferred_start_time') }}</div>@endif
+</div>
+<div class="col-md-3">
+<label class="form-label" for="preferred_end_time">Heure de fin préférée</label>
+<input class="form-control @if($errs->has('preferred_end_time')) is-invalid @endif" type="time" id="preferred_end_time" name="preferred_end_time" value="{{ old('preferred_end_time', $logisticsPreference?->preferred_end_time ? substr($logisticsPreference->preferred_end_time, 0, 5) : '') }}">
+@if($errs->has('preferred_end_time'))<div class="invalid-feedback">{{ $errs->first('preferred_end_time') }}</div>@endif
+</div>
+<div class="col-12">
+<label class="form-label" for="preferred_city">Ville préférée <span class="text-muted fw-normal">(facultative)</span></label>
+<input class="form-control @if($errs->has('preferred_city')) is-invalid @endif" type="text" id="preferred_city" name="preferred_city" maxlength="100" value="{{ old('preferred_city', $logisticsPreference?->preferred_city) }}" autocomplete="address-level2">
+@if($errs->has('preferred_city'))<div class="invalid-feedback">{{ $errs->first('preferred_city') }}</div>@endif
+<div class="form-text">La ville aide à repérer les points correspondants. Aucune coordonnée n’est déduite automatiquement.</div>
+</div>
+</div>
+<div class="d-flex flex-wrap gap-2 mt-4">
+<button class="btn btn-primary" type="submit">Enregistrer mes préférences</button>
+@if($logisticsPreference)
+<button class="btn btn-outline-secondary" type="submit" form="reset-logistics-preferences">Réinitialiser</button>
+@endif
+</div>
+</form>
+@if($logisticsPreference)
+<form id="reset-logistics-preferences" method="POST" action="{{ route('profile.logistics-preferences.reset') }}" onsubmit="return confirm('Réinitialiser vos préférences de retrait ?')">@csrf @method('DELETE')</form>
+@endif
+</section>
+@endunless
 
 {{-- Face login --}}
 <section class="profile-card" id="visage">

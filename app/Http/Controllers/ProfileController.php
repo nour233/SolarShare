@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PickupPoint;
 use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,9 +19,54 @@ class ProfileController extends Controller
         return view('profile.show', [
             'user' => $user,
             'faceDescriptorAvailable' => $user->usableFaceDescriptor() !== null,
+            'logisticsPreference' => $user->isAdmin()
+                ? null
+                : $user->logisticsPreference()->with('preferredPickupPoint')->first(),
+            'pickupPoints' => $user->isAdmin()
+                ? collect()
+                : PickupPoint::query()->where('status', 'active')->orderBy('city')->orderBy('name')->get(),
             // While 2FA is being set up (secret saved, not confirmed yet), show the QR code.
             'qrCode' => $user->two_factor_secret && ! $user->hasTwoFactorEnabled() ? $twoFactor->qrCodeSvg($user, $user->two_factor_secret) : null,
         ]);
+    }
+
+    public function updateLogisticsPreferences(Request $request)
+    {
+        $data = $request->validateWithBag('logisticsPreferences', [
+            'preferred_pickup_point_id' => [
+                'nullable',
+                'integer',
+                'exists:pickup_points,id,status,active',
+            ],
+            'preferred_start_time' => [
+                'nullable',
+                'required_with:preferred_end_time',
+                'date_format:H:i',
+            ],
+            'preferred_end_time' => [
+                'nullable',
+                'required_with:preferred_start_time',
+                'date_format:H:i',
+                'after:preferred_start_time',
+            ],
+            'preferred_city' => ['nullable', 'string', 'max:100'],
+        ], [
+            'preferred_pickup_point_id.exists' => 'Sélectionnez un point de retrait actif.',
+            'preferred_start_time.required_with' => 'Indiquez les deux heures de votre plage préférée.',
+            'preferred_end_time.required_with' => 'Indiquez les deux heures de votre plage préférée.',
+            'preferred_end_time.after' => 'L’heure de fin doit être après l’heure de début.',
+        ]);
+
+        $request->user()->logisticsPreference()->updateOrCreate([], $data);
+
+        return back()->with('status', 'Vos préférences de retrait ont été enregistrées.');
+    }
+
+    public function resetLogisticsPreferences(Request $request)
+    {
+        $request->user()->logisticsPreference()->delete();
+
+        return back()->with('status', 'Vos préférences de retrait ont été réinitialisées.');
     }
 
     public function update(Request $request)

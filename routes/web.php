@@ -114,6 +114,8 @@ Route::post(
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/logistics-preferences', [\App\Http\Controllers\ProfileController::class, 'updateLogisticsPreferences'])->name('profile.logistics-preferences.update');
+    Route::delete('/profile/logistics-preferences', [\App\Http\Controllers\ProfileController::class, 'resetLogisticsPreferences'])->name('profile.logistics-preferences.reset');
     Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
     Route::post('/profile/face-login', [FaceEnrollmentController::class, 'store'])->middleware('throttle:6,1')->name('face-login.store');
