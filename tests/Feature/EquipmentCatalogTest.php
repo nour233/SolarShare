@@ -33,4 +33,18 @@ class EquipmentCatalogTest extends TestCase
         $this->assertSame(['front/img/gallery-1.jpg'],$equipment->photos);
         $this->get('/equipments/99999')->assertNotFound();
     }
+    public function test_search_matches_words_across_fields_and_preserves_category_and_literal_wildcards(): void {
+        $category = Category::create(['name'=>'Batteries','icon'=>'fa-battery-full']);
+        $other = Category::create(['name'=>'Solaires','icon'=>'fa-solar-panel']);
+        $owner = User::factory()->create();
+        foreach ([['Batterie nomade','Pour camping 100% pratique',$category->id], ['Panneau portable','Pour camping',$other->id]] as [$title,$description,$categoryId]) {
+            Equipment::create(['title'=>$title,'description'=>$description,'condition'=>'Bon état','price_per_day'=>10,'category_id'=>$categoryId,'owner_id'=>$owner->id]);
+        }
+        foreach (['/', '/equipments'] as $path) {
+            $this->get($path.'?q=batterie+camping')->assertOk()->assertSee('Batterie nomade')->assertDontSee('Panneau portable');
+            $this->get($path.'?q=camping&category='.$other->id)->assertOk()->assertSee('Panneau portable')->assertDontSee('Batterie nomade');
+            $this->get($path.'?q=100%25')->assertOk()->assertSee('Batterie nomade')->assertDontSee('Panneau portable');
+            $this->get($path.'?q=introuvable')->assertOk()->assertSee('Aucun ')->assertDontSee('Batterie nomade');
+        }
+    }
 }

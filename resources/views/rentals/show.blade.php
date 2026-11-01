@@ -5,13 +5,7 @@
 @section('content')
 <div class="container py-5" style="max-width:760px">
 
-    <a
-        href="{{ route('rentals.index') }}"
-        class="d-inline-block mb-4 text-decoration-none"
-        style="color:#278658"
-    >
-        ← Mes réservations
-    </a>
+
 
     @if(session('status'))
         <div class="alert alert-success">

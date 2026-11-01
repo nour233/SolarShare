@@ -2,6 +2,7 @@
 @section('title', 'Locations')
 
 @section('content')
+<div class="admin-rental-list">
 <div class="catalog-intro">
     <div>
         <span class="section-kicker">GESTION DES LOCATIONS</span>
@@ -14,7 +15,7 @@
 </div>
 
 {{-- Status filter tabs --}}
-<div class="d-flex flex-wrap gap-2 mb-4">
+<div class="d-flex flex-wrap gap-2 mb-4 admin-rental-filters">
     <a href="{{ route('admin.rentals.index') }}"
        class="btn btn-sm {{ !$status ? 'btn-dark' : 'btn-outline-secondary' }}">
         Toutes <span class="badge bg-secondary ms-1">{{ $counts['all'] }}</span>
@@ -79,16 +80,16 @@
                     </td>
                     <td class="text-end px-4">
                         <div class="actions justify-content-end">
-                            <a href="{{ route('admin.rentals.show', $rental) }}" class="btn btn-sm btn-outline-success" title="Détail">
+                            <a href="{{ route('admin.rentals.show', $rental) }}" class="btn btn-sm btn-outline-success" title="Voir le détail" aria-label="Voir le détail">
                                 <i class="fa fa-eye"></i>
                             </a>
-                            <a href="{{ route('admin.rentals.edit', $rental) }}" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                            <a href="{{ route('admin.rentals.edit', $rental) }}" class="btn btn-sm btn-outline-secondary" title="Modifier" aria-label="Modifier la location">
                                 <i class="far fa-edit"></i>
                             </a>
                             <form method="POST" action="{{ route('admin.rentals.destroy', $rental) }}"
                                   onsubmit="return confirm('Supprimer cette location définitivement ?')">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                <button class="btn btn-sm btn-outline-danger" title="Supprimer" aria-label="Supprimer la location">
                                     <i class="far fa-trash-alt"></i>
                                 </button>
                             </form>
@@ -104,4 +105,5 @@
 </div>
 
 <div class="mt-4">{{ $rentals->links('pagination::bootstrap-5') }}</div>
+</div>
 @endsection

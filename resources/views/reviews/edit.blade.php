@@ -1,8 +1,9 @@
 @extends('layouts.front')
 @section('title', 'Modifier mon avis')
 @section('content')
-<div class="container py-5"><div class="row justify-content-center"><div class="col-lg-7">
-    <div class="text-center mb-4"><h6 class="text-primary">Votre expérience</h6><h1>Modifier mon avis</h1><p>La modification est possible pendant 5 minutes après publication.</p></div>
-    <div class="surface p-4 p-lg-5">@include('reviews.form', ['action' => route('reviews.update', $review), 'method' => 'PUT', 'review' => $review])</div>
-</div></div></div>
+<div class="container review-compose">
+<a href="{{ route('reviews.index') }}" class="compose-back"><i class="fas fa-arrow-left" aria-hidden="true"></i> Tous les avis</a>
+<header class="compose-heading"><span>LA COMMUNAUTÉ SOLARSHARE</span><h1>Modifier mon avis</h1><p>Vous pouvez modifier votre avis pendant les 5 minutes suivant sa publication.</p></header>
+@include('reviews.form', ['action' => route('reviews.update', $review), 'method' => 'PUT', 'review' => $review])
+</div>
 @endsection

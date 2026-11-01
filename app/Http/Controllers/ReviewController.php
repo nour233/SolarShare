@@ -22,8 +22,8 @@ class ReviewController extends Controller
             'reviews' => Review::with('user')
                 ->when($rating, fn ($query) => $query->where('rating', $rating))
                 ->when($userSearch, fn ($query) => $query->whereHas('user', function ($userQuery) use ($userSearch) {
-                    $escapedSearch = addcslashes($userSearch, '%_\\');
-                    $userQuery->whereRaw("name LIKE ? ESCAPE '\\'", ['%'.$escapedSearch.'%']);
+                    $escapedSearch = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $userSearch);
+                    $userQuery->whereRaw("name LIKE ? ESCAPE '!'", ['%'.$escapedSearch.'%']);
                 }))
                 ->latest()
                 ->paginate(12)

@@ -3,6 +3,7 @@
 @section('title', 'Points de retrait')
 
 @section('content')
+<div class="admin-pickup-list">
 
 <div class="catalog-intro">
     <div>
@@ -37,7 +38,7 @@
 
 
 {{-- Filters --}}
-<div class="d-flex flex-wrap gap-2 mb-4">
+<div class="d-flex flex-wrap gap-2 mb-4 admin-rental-filters">
 
     <a
         href="{{ route('admin.pickup-points.index') }}"
@@ -92,7 +93,7 @@
         >
     @endif
 
-    <div class="input-group" style="max-width:500px">
+    <div class="input-group pickup-search-group" style="max-width:500px">
 
         <input
             type="text"
@@ -259,4 +260,5 @@
     {{ $pickupPoints->links('pagination::bootstrap-5') }}
 </div>
 
+</div>
 @endsection
