@@ -130,6 +130,17 @@ class SmartPickupRecommendationTest extends TestCase
         $this->assertSame(['10:30'], array_column($recommendation[0]['slots'], 'start'));
     }
 
+    public function test_schedule_remainder_shorter_than_configured_duration_is_not_a_slot(): void
+    {
+        $rental = $this->rental();
+        $point = $this->point(['slot_duration_minutes' => 30]);
+        $this->weekdaySchedule($point, '09:00', '09:45');
+
+        $recommendation = $this->recommendations()->recommend($rental, Carbon::parse('2026-11-02'));
+
+        $this->assertSame(['09:00'], array_column($recommendation[0]['slots'], 'start'));
+    }
+
     public function test_missing_gps_redistributes_weights_and_ties_are_deterministic(): void
     {
         $rental = $this->rental();

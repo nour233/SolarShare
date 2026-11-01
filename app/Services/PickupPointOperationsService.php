@@ -145,8 +145,8 @@ class PickupPointOperationsService
                 $intervalStart = $this->minutesAfterMidnight($openingHour->opens_at);
                 $intervalEnd = $this->minutesAfterMidnight($openingHour->closes_at);
 
-                for ($slotStart = $intervalStart; $slotStart < $intervalEnd; $slotStart += $slotDuration) {
-                    $slotEnd = min($slotStart + $slotDuration, $intervalEnd);
+                for ($slotStart = $intervalStart; $slotStart + $slotDuration <= $intervalEnd; $slotStart += $slotDuration) {
+                    $slotEnd = $slotStart + $slotDuration;
                     $slots[] = [
                         'start' => $this->formatTime($slotStart),
                         'end' => $this->formatTime($slotEnd),
