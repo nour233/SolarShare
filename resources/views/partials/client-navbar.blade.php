@@ -21,7 +21,7 @@
                 <div class="d-flex align-items-center">
                     @include('partials.notification-dropdown')
                 </div>
-                <span class="nav-item nav-link">{{ auth()->user()->name }}</span>
+                <a href="{{ route('profile.show') }}" class="nav-item nav-link d-flex align-items-center {{ request()->routeIs('profile.*') ? 'active' : '' }}" title="Mon profil">@if(auth()->user()->avatarUrl())<img src="{{ auth()->user()->avatarUrl() }}" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;margin-right:8px">@endif{{ auth()->user()->name }}</a>
             @endauth
         </div>
         @guest

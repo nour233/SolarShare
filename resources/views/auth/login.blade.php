@@ -12,7 +12,7 @@
 <div><label for="email">Adresse e-mail</label><input class="auth-input" id="email" type="email" name="email" autocomplete="email" value="{{ old('email') }}" required maxlength="255" autofocus></div>
 <div><label for="password">Mot de passe</label><input class="auth-input" id="password" type="password" name="password" autocomplete="current-password" required></div>
 </div>
-<p class="text-end mt-3"><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></p>
+<div class="d-flex justify-content-between align-items-center mt-3"><label class="form-check-label small"><input class="form-check-input me-2" type="checkbox" name="remember" value="1" @checked(old('remember'))>Se souvenir de moi</label><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></div>
 <button class="auth-submit" type="submit">Se connecter <span aria-hidden="true">↗</span></button>
 <p class="change-email mt-3">Pas encore de compte ? <a href="{{ route('register', [], false) }}">Créer mon compte</a></p>
 </form>
