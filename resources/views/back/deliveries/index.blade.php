@@ -3,6 +3,7 @@
 @section('title', 'Livraisons')
 
 @section('content')
+<div class="admin-delivery-list">
 
 <div class="catalog-intro">
     <div>
@@ -48,7 +49,7 @@
 
 {{-- Status filters --}}
 
-<div class="d-flex flex-wrap gap-2 mb-4">
+<div class="d-flex flex-wrap gap-2 mb-4 admin-rental-filters">
 
     <a
         href="{{ route('admin.deliveries.index') }}"
@@ -367,4 +368,5 @@
     {{ $deliveries->links('pagination::bootstrap-5') }}
 </div>
 
+</div>
 @endsection

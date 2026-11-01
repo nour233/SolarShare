@@ -96,36 +96,76 @@
     
 })(jQuery);
 
-// Filter equipment on the homepage without navigating away.
-document.addEventListener('click', async function (event) {
-    const link = event.target.closest('#equipments .equipment-filters a, #equipments .equipment-pagination a');
-    if (!link || window.location.pathname !== '/' || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    const section = document.getElementById('equipments');
-    if (section.getAttribute('aria-busy') === 'true') return;
-    section.setAttribute('aria-busy', 'true');
-    section.style.opacity = '0.6';
-    try {
-        const response = await fetch(link.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
-        if (!response.ok) throw new Error('Filter unavailable');
-        const html = await response.text();
-        const parsed = new DOMParser().parseFromString(html, 'text/html');
-        const updated = parsed.getElementById('equipments');
-        if (!updated) throw new Error('Missing equipment list');
-        const oldAdvisor = section.querySelector('.solar-advisor');
-        const newAdvisor = updated.querySelector('.solar-advisor');
-        if (oldAdvisor && newAdvisor) newAdvisor.replaceWith(oldAdvisor);
-        section.replaceWith(updated);
-        if (link.closest('.equipment-pagination')) updated.querySelector('.equipment-filters').scrollIntoView({behavior:'smooth', block:'start'});
-        updated.querySelectorAll('a').forEach(item => { if (item.textContent === link.textContent) item.focus({preventScroll: true}); });
-    } catch (error) {
-        section.style.opacity = '';
-        section.removeAttribute('aria-busy');
-        let notice = section.querySelector('[role="alert"]');
-        if (!notice) { notice = document.createElement('p'); notice.className = 'text-danger text-center'; notice.setAttribute('role', 'alert'); section.prepend(notice); }
-        notice.textContent = 'Impossible de charger les équipements. Veuillez réessayer.';
+// Dynamic catalogue search, categories and pagination on home and catalogue pages.
+(() => {
+    let timer, controller, version = 0;
+    function cancel() { clearTimeout(timer); version++; if (controller) controller.abort(); }
+    async function load(url, scroll = false) {
+        cancel();
+        const request = version;
+        controller = new AbortController();
+        const currentController = controller;
+        const timeout = setTimeout(() => currentController.abort(), 15000);
+        const section = document.getElementById('equipments');
+        section.setAttribute('aria-busy', 'true');
+        section.querySelector('.catalogue-status').textContent = 'Recherche en cours…';
+        try {
+            const response = await fetch(url, {signal: controller.signal, headers: {'X-Requested-With':'XMLHttpRequest'}});
+            if (!response.ok) throw new Error('request');
+            const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const updated = parsed.getElementById('equipments');
+            if (!updated) throw new Error('response');
+            if (request !== version) return;
+            for (const selector of ['.solar-advisor', '.catalogue-search']) {
+                const old = section.querySelector(selector), fresh = updated.querySelector(selector);
+                if (old && fresh) {
+                    if (selector === '.catalogue-search') {
+                        old.querySelectorAll('input[name="category"]').forEach(input => input.remove());
+                        const category = fresh.querySelector('input[name="category"]');
+                        if (category) old.append(category);
+                    }
+                    fresh.replaceWith(old);
+                }
+            }
+            section.replaceWith(updated);
+            updated.removeAttribute('aria-busy');
+            updated.querySelector('.catalogue-status').textContent = 'Catalogue mis à jour.';
+            history.replaceState(null, '', url);
+            if (scroll) updated.querySelector('.equipment-filters').scrollIntoView({behavior:'smooth', block:'start'});
+        } catch (error) {
+            if (request === version) section.querySelector('.catalogue-status').textContent = 'Impossible de charger les équipements. Réessayez en modifiant la recherche.';
+        } finally { clearTimeout(timeout); if (request === version) section.removeAttribute('aria-busy'); }
     }
-});
+    function searchUrl(form) {
+        const url = new URL(form.action);
+        for (const [key,value] of new FormData(form)) if (value.trim()) url.searchParams.set(key,value.trim());
+        url.hash = 'equipments'; return url;
+    }
+    document.addEventListener('input', event => {
+        if (!event.target.matches('#catalogue-query')) return;
+        cancel();
+        const form = event.target.form;
+        form.querySelector('.catalogue-clear').hidden = !event.target.value;
+        timer = setTimeout(() => load(searchUrl(form)), 350);
+    });
+    document.addEventListener('submit', event => {
+        if (!event.target.matches('.catalogue-search')) return;
+        event.preventDefault(); load(searchUrl(event.target));
+    });
+    document.addEventListener('click', event => {
+        const clear = event.target.closest('.catalogue-clear');
+        if (clear) { const form = clear.closest('form'); form.querySelector('input[name="q"]').value = ''; clear.hidden = true; form.querySelector('input[name="q"]').focus(); load(searchUrl(form)); return; }
+        const link = event.target.closest('#equipments .equipment-filters a, #equipments .equipment-pagination a');
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const url = new URL(link.href);
+        if (link.closest('.equipment-filters')) {
+            const value = document.getElementById('catalogue-query').value.trim();
+            if (value) url.searchParams.set('q',value); else url.searchParams.delete('q');
+        }
+        load(url, !!link.closest('.equipment-pagination'));
+    });
+})();
 
 // Delegation also covers the homepage section replaced by category filtering.
 document.addEventListener('submit', async event => {
@@ -138,7 +178,12 @@ document.addEventListener('submit', async event => {
     const status = panel.querySelector('.advisor-status');
     const results = panel.querySelector('.advisor-results');
     results.replaceChildren();
+    const loading = panel.querySelector('.advisor-loading');
+    const buttonLabel = button.textContent;
     button.disabled = true;
+    button.textContent = 'Recherche en cours…';
+    panel.setAttribute('aria-busy', 'true');
+    if (loading) loading.hidden = false;
     status.textContent = 'Nous explorons le catalogue pour votre projet…';
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 55000);
@@ -147,16 +192,36 @@ document.addEventListener('submit', async event => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(response.status === 429 ? 'Trop de recherches. Patientez une minute.' : response.status === 419 ? 'Votre session a expiré. Rechargez la page.' : Object.values(data.errors || {}).flat()[0] || data.message || 'Recherche indisponible. Réessayez.');
         status.textContent = data.items.length ? 'Voici les pistes qui correspondent à votre besoin. Vérifiez les caractéristiques et les dates sur chaque fiche.' : 'Aucun équipement adapté trouvé dans le catalogue consulté. Essayez de préciser vos appareils ou explorez les catégories.';
-        for (const item of data.items) {
+        for (const [index, item] of data.items.entries()) {
             const card = document.createElement('article'); card.className = 'advisor-result';
+            const visual = document.createElement('div'); visual.className = 'advisor-result-visual';
+            if (item.photo) {
+                const image = document.createElement('img'); image.src = item.photo; image.alt = item.title; image.loading = 'lazy';
+                image.addEventListener('error', () => { image.remove(); visual.classList.add('advisor-image-missing'); }, {once:true});
+                visual.append(image);
+            } else visual.classList.add('advisor-image-missing');
+            const badge = document.createElement('span'); badge.className = 'advisor-result-rank'; badge.textContent = 'Suggestion ' + (index + 1); visual.append(badge);
+            const body = document.createElement('div'); body.className = 'advisor-result-body';
             const category = document.createElement('small'); category.textContent = item.category;
             const title = document.createElement('h4'); title.textContent = item.title;
-            const reason = document.createElement('p'); reason.textContent = item.reason;
-            const link = document.createElement('a'); link.href = item.url; link.textContent = 'Voir la fiche · ' + item.price + ' / jour ↗';
-            card.append(category,title,reason,link); results.append(card);
+            const capacity = document.createElement('span'); capacity.className = 'advisor-result-capacity'; capacity.textContent = item.capacity || 'Caractéristiques sur la fiche';
+            const reason = document.createElement('p'); reason.className = 'advisor-result-reason'; reason.textContent = item.reason;
+            body.append(category,title,capacity,reason);
+            if (item.reason.length > 260) {
+                reason.classList.add('advisor-reason-collapsed');
+                const expand = document.createElement('button'); expand.type = 'button'; expand.className = 'advisor-reason-toggle'; expand.textContent = 'Lire l’explication'; expand.setAttribute('aria-expanded','false');
+                expand.addEventListener('click', () => { const collapsed = reason.classList.toggle('advisor-reason-collapsed'); expand.setAttribute('aria-expanded', String(!collapsed)); expand.textContent = collapsed ? 'Lire l’explication' : 'Réduire'; });
+                body.append(expand);
+            }
+            const footer = document.createElement('div'); footer.className = 'advisor-result-footer';
+            const price = document.createElement('div'); price.className = 'advisor-result-price';
+            const amount = document.createElement('strong'); amount.textContent = item.price;
+            const unit = document.createElement('span'); unit.textContent = ' / jour'; price.append(amount,unit);
+            const link = document.createElement('a'); link.href = item.url; link.textContent = 'Voir la fiche ↗';
+            footer.append(price,link); body.append(footer); card.append(visual,body); results.append(card);
         }
     } catch (error) {status.textContent = error.name === 'AbortError' ? 'La recherche prend trop de temps. Réessayez.' : error.message;}
-    finally {clearTimeout(timer);button.disabled=false;}
+    finally {clearTimeout(timer);button.disabled=false;button.textContent=buttonLabel;panel.removeAttribute('aria-busy');if(loading) loading.hidden=true;}
 });
 
 document.addEventListener('click', event => {
