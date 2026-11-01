@@ -285,6 +285,21 @@ Route::middleware('auth')->group(function () {
         [RentalController::class, 'show']
     )->name('rentals.show');
 
+    Route::get(
+        '/rentals/{rental}/smart-pickup',
+        [\App\Http\Controllers\SmartPickupController::class, 'index']
+    )->name('rentals.smart-pickup');
+
+    Route::get(
+        '/rentals/{rental}/smart-pickup/confirm',
+        [\App\Http\Controllers\SmartPickupController::class, 'confirm']
+    )->name('rentals.smart-pickup.confirm');
+
+    Route::post(
+        '/rentals/{rental}/smart-pickup/book',
+        [\App\Http\Controllers\SmartPickupController::class, 'book']
+    )->name('rentals.smart-pickup.book');
+
     Route::patch(
         '/rentals/{rental}/cancel',
         [RentalController::class, 'cancel']
@@ -473,6 +488,21 @@ Route::middleware(['auth', 'admin'])
         | Deliveries - Zied
         |--------------------------------------------------------------------------
         */
+
+        Route::get(
+            'deliveries/smart-pickup/confirm',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'confirmSmartPickup']
+        )->name('admin.deliveries.smart-pickup.confirm');
+
+        Route::post(
+            'deliveries/smart-pickup/book',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'bookSmartPickup']
+        )->name('admin.deliveries.smart-pickup.book');
+
+        Route::get(
+            'deliveries/smart-pickup',
+            [\App\Http\Controllers\Admin\DeliveryController::class, 'smartPickup']
+        )->name('admin.deliveries.smart-pickup');
 
         Route::resource(
             'deliveries',

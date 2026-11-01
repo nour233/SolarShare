@@ -19,13 +19,22 @@
         </p>
     </div>
 
-    <a
-        href="{{ route('admin.deliveries.create') }}"
-        class="btn btn-primary add-button"
-    >
-        <i class="fa fa-plus me-2"></i>
-        Nouvelle livraison
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a
+            href="{{ route('admin.deliveries.smart-pickup') }}"
+            class="btn btn-outline-success"
+        >
+            <i class="fa fa-star me-2"></i>
+            SmartPickup
+        </a>
+        <a
+            href="{{ route('admin.deliveries.create') }}"
+            class="btn btn-primary add-button"
+        >
+            <i class="fa fa-plus me-2"></i>
+            Nouvelle livraison
+        </a>
+    </div>
 </div>
 
 

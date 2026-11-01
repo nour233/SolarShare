@@ -8,11 +8,103 @@ use App\Models\PickupPoint;
 use App\Models\Rental;
 use App\Services\DeliveryBookingService;
 use App\Services\DeliveryStatusService;
+use App\Services\SmartPickupRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class DeliveryController extends Controller
 {
+    public function smartPickup(
+        Request $request,
+        \App\Http\Controllers\SmartPickupController $smartPickup,
+        SmartPickupRecommendationService $recommendations
+    ) {
+        $validated = $smartPickup->validateSearch($request);
+        $rental = isset($validated['rental_id'])
+            ? Rental::findOrFail($validated['rental_id'])
+            : null;
+        $results = [];
+
+        if ($rental && isset($validated['date'])) {
+            $results = $recommendations->recommend(
+                $rental,
+                \Carbon\Carbon::createFromFormat('Y-m-d', $validated['date']),
+                $validated['preferred_time'] ?? null,
+                isset($validated['latitude']) ? (float) $validated['latitude'] : null,
+                isset($validated['longitude']) ? (float) $validated['longitude'] : null
+            );
+        }
+
+        $rentals = Rental::query()
+            ->whereNotIn('status', ['returned', 'cancelled'])
+            ->with('equipment')
+            ->latest()
+            ->limit(100)
+            ->get();
+        if ($rental && ! $rentals->contains('id', $rental->id)) {
+            $rentals->prepend($rental->load('equipment'));
+        }
+
+        return view('smart-pickup.index', [
+            'rental' => $rental?->load('equipment'),
+            'rentals' => $rentals,
+            'results' => $results,
+            'isAdmin' => true,
+            'formRoute' => route('admin.deliveries.smart-pickup'),
+            'confirmRoute' => route('admin.deliveries.smart-pickup.confirm'),
+            'selectedDate' => $validated['date'] ?? '',
+            'preferredTime' => $validated['preferred_time'] ?? '',
+            'latitude' => $validated['latitude'] ?? '',
+            'longitude' => $validated['longitude'] ?? '',
+        ]);
+    }
+
+    public function confirmSmartPickup(
+        Request $request,
+        \App\Http\Controllers\SmartPickupController $smartPickup,
+        SmartPickupRecommendationService $recommendations
+    ) {
+        $selection = $smartPickup->validateSelection($request);
+        $rental = Rental::findOrFail($selection['rental_id']);
+        $recommendation = $smartPickup->findAvailableSelection($rental, $selection, $recommendations);
+        $delivery = $rental->deliveries()
+            ->where('type', 'pickup')
+            ->where('status', 'planned')
+            ->latest('id')
+            ->first();
+
+        return view('smart-pickup.confirmation', [
+            'rental' => $rental->load('equipment'),
+            'recommendation' => $recommendation,
+            'selectedTime' => $selection['scheduled_time'],
+            'isAdmin' => true,
+            'bookRoute' => route('admin.deliveries.smart-pickup.book'),
+            'deliveryFee' => $delivery?->delivery_fee ?? 0,
+            'selection' => $selection,
+        ]);
+    }
+
+    public function bookSmartPickup(
+        Request $request,
+        \App\Http\Controllers\SmartPickupController $smartPickup,
+        DeliveryBookingService $booking
+    ) {
+        $selection = $smartPickup->validateSelection($request);
+        $request->validate(['confirmed' => ['required', 'accepted']]);
+        $rental = Rental::findOrFail($selection['rental_id']);
+        $result = $booking->bookPickup(
+            $rental,
+            (int) $selection['pickup_point_id'],
+            $selection['date'],
+            $selection['scheduled_time'],
+            $request->user()
+        );
+
+        return redirect()
+            ->route('admin.deliveries.show', $result['delivery'])
+            ->with('success', $result['changed'] ? 'Rendez-vous de retrait planifié.' : 'Ce rendez-vous était déjà planifié.');
+    }
+
     public function index(Request $request)
     {
         $query = Delivery::with([
