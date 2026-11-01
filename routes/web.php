@@ -442,6 +442,26 @@ Route::middleware(['auth', 'admin'])
         |--------------------------------------------------------------------------
         */
 
+        Route::get(
+            'pickup-points/capacity',
+            \App\Http\Controllers\Admin\PickupPointCapacityController::class
+        )->name('admin.pickup-points.capacity');
+
+        Route::post(
+            'pickup-points/{pickupPoint}/closures',
+            [\App\Http\Controllers\Admin\PickupPointClosureController::class, 'store']
+        )->name('admin.pickup-points.closures.store');
+
+        Route::put(
+            'pickup-points/{pickupPoint}/closures/{closure}',
+            [\App\Http\Controllers\Admin\PickupPointClosureController::class, 'update']
+        )->name('admin.pickup-points.closures.update');
+
+        Route::delete(
+            'pickup-points/{pickupPoint}/closures/{closure}',
+            [\App\Http\Controllers\Admin\PickupPointClosureController::class, 'destroy']
+        )->name('admin.pickup-points.closures.destroy');
+
         Route::resource(
             'pickup-points',
             \App\Http\Controllers\Admin\PickupPointController::class
