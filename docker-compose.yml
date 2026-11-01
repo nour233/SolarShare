@@ -1,5 +1,6 @@
 services:
   app:
+    image: ${APP_IMAGE:-solarshare-app:latest}
     build: .
     ports:
       - "8000:8000"

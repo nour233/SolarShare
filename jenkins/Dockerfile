@@ -10,3 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY --from=docker:cli /usr/local/bin/docker /usr/local/bin/docker
+
+RUN mkdir -p /usr/local/lib/docker/cli-plugins \
+ && curl -fsSL https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose \
+ && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
