@@ -21,7 +21,14 @@
                 <div class="d-flex align-items-center">
                     @include('partials.notification-dropdown')
                 </div>
-                <span class="nav-item nav-link">{{ auth()->user()->name }}</span>
+                <span class="nav-item nav-link d-inline-flex align-items-center gap-1">
+                    {{ auth()->user()->name }}
+                    @if(auth()->user()->rfm_segment === 'vip')
+                        <span class="badge bg-warning text-dark" style="font-size: 11px;">⭐ VIP</span>
+                    @elseif(auth()->user()->rfm_segment === 'regular')
+                        <span class="badge bg-success" style="font-size: 11px;">✅ Fidèle</span>
+                    @endif
+                </span>
             @endauth
         </div>
         @guest

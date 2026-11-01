@@ -45,6 +45,21 @@
                 <div>
                     <small class="text-muted d-block">Locataire</small>
                     <strong>{{ $rental->renter->name }}</strong>
+                    @if($rental->renter->rfm_segment)
+                        @php
+                            $segmentBadges = [
+                                'vip' => ['class' => 'bg-warning text-dark', 'label' => '⭐ VIP'],
+                                'regular' => ['class' => 'bg-success text-white', 'label' => '✅ Régulier'],
+                                'at_risk' => ['class' => 'bg-warning text-dark', 'label' => '⚠️ À risque'],
+                                'lost' => ['class' => 'bg-danger text-white', 'label' => '❌ Perdu'],
+                                'new' => ['class' => 'bg-secondary text-white', 'label' => '🆕 Nouveau'],
+                            ];
+                            $seg = $segmentBadges[$rental->renter->rfm_segment] ?? null;
+                        @endphp
+                        @if($seg)
+                            <span class="badge {{ $seg['class'] }} ms-1" style="font-size: 0.75rem;">{{ $seg['label'] }}</span>
+                        @endif
+                    @endif
                     <span class="ms-2 text-muted small">{{ $rental->renter->email }}</span>
                 </div>
             </div>

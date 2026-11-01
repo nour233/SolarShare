@@ -150,6 +150,13 @@ class RentalController extends Controller
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('RentalStatusUpdated notification failed: ' . $e->getMessage());
             }
+
+            // Auto-update RFM segmentation
+            try {
+                if ($rental->renter) {
+                    app(\App\Services\RfmSegmentationService::class)->segmentUser($rental->renter);
+                }
+            } catch (\Throwable $e) {}
         }
 
         return back()->with('status', 'Statut mis à jour.');
@@ -174,6 +181,13 @@ class RentalController extends Controller
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('PaymentRecorded notification failed: ' . $e->getMessage());
         }
+
+        // Auto-update RFM segmentation
+        try {
+            if ($rental->renter) {
+                app(\App\Services\RfmSegmentationService::class)->segmentUser($rental->renter);
+            }
+        } catch (\Throwable $e) {}
 
         return back()->with('status', 'Paiement enregistré.');
     }
