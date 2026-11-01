@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\PickupPoint;
 use App\Models\Rental;
+use App\Services\DeliveryBookingService;
 use App\Services\DeliveryStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -105,21 +106,25 @@ class DeliveryController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(Request $request, DeliveryBookingService $booking)
     {
         $validated = $this->validateDelivery($request);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Home delivery has no pickup point
-        |--------------------------------------------------------------------------
-        */
-
-        if ($validated['type'] === 'home_delivery') {
-            $validated['pickup_point_id'] = null;
+        if ($validated['type'] === 'pickup') {
+            $booking->bookPickup(
+                Rental::findOrFail($validated['rental_id']),
+                (int) $validated['pickup_point_id'],
+                $validated['scheduled_date'],
+                $validated['scheduled_time'],
+                $request->user(),
+                deliveryFee: (float) $validated['delivery_fee']
+            );
+        } else {
+            $booking->saveHomeDelivery(
+                Rental::findOrFail($validated['rental_id']),
+                $validated
+            );
         }
-
-        Delivery::create($validated);
 
         return redirect()
             ->route('admin.deliveries.index')
@@ -201,17 +206,33 @@ class DeliveryController extends Controller
     }
 
 
-    public function update(
-        Request $request,
-        Delivery $delivery
-    ) {
+    public function update(Request $request, Delivery $delivery, DeliveryBookingService $booking)
+    {
         $validated = $this->validateDelivery($request);
 
-        if ($validated['type'] === 'home_delivery') {
-            $validated['pickup_point_id'] = null;
-        }
+        if ($validated['type'] === 'pickup') {
+            if ($delivery->type !== 'pickup') {
+                return back()->withInput()->withErrors([
+                    'type' => 'Une livraison à domicile ne peut pas être convertie implicitement en retrait.',
+                ]);
+            }
 
-        $delivery->update($validated);
+            $booking->bookPickup(
+                Rental::findOrFail($validated['rental_id']),
+                (int) $validated['pickup_point_id'],
+                $validated['scheduled_date'],
+                $validated['scheduled_time'],
+                $request->user(),
+                $delivery,
+                (float) $validated['delivery_fee']
+            );
+        } else {
+            $booking->saveHomeDelivery(
+                Rental::findOrFail($validated['rental_id']),
+                $validated,
+                $delivery
+            );
+        }
 
         return redirect()
             ->route('admin.deliveries.index')
