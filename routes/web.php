@@ -68,6 +68,10 @@ Route::middleware('guest')->group(function () {
         '/login',
         [LoginController::class, 'store']
     )->middleware('throttle:5,1');
+
+    // Second step of the login when 2FA is on.
+    Route::get('/two-factor-challenge', [LoginController::class, 'challenge'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [LoginController::class, 'verifyChallenge'])->middleware('throttle:10,1')->name('two-factor.verify');
 });
 
 
@@ -94,6 +98,25 @@ Route::post(
 )
     ->middleware('auth')
     ->name('logout');
+
+
+/*
+|--------------------------------------------------------------------------
+| Profile and two-factor authentication
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
+    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
+
+    Route::post('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'enable'])->middleware('throttle:6,1')->name('two-factor.enable');
+    Route::post('/profile/two-factor/confirm', [\App\Http\Controllers\TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('two-factor.confirm');
+    Route::post('/profile/two-factor/recovery-codes', [\App\Http\Controllers\TwoFactorController::class, 'regenerateRecoveryCodes'])->middleware('throttle:6,1')->name('two-factor.recovery-codes');
+    Route::delete('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('two-factor.disable');
+});
 
 
 /*
