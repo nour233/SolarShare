@@ -127,6 +127,7 @@ services:
       APP_DEBUG: "false"
       APP_URL: http://localhost:8002
       APP_KEY: ${SOLARSHARE_DEVOPS_KEY:?Cle Laravel manquante}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?Cle Claude manquante}
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
@@ -150,6 +151,10 @@ volumes:
                     string(
                         credentialsId: 'solarshare-devops-app-key',
                         variable: 'SOLARSHARE_DEVOPS_KEY'
+                    ),
+                    string(
+                        credentialsId: 'solarshare-anthropic-api-key',
+                        variable: 'ANTHROPIC_API_KEY'
                     )
                 ]) {
                     sh '''
@@ -178,6 +183,10 @@ volumes:
                     string(
                         credentialsId: 'solarshare-devops-app-key',
                         variable: 'SOLARSHARE_DEVOPS_KEY'
+                    ),
+                    string(
+                        credentialsId: 'solarshare-anthropic-api-key',
+                        variable: 'ANTHROPIC_API_KEY'
                     )
                 ]) {
                     sh '''
