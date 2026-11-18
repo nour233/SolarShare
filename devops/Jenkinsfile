@@ -1,0 +1,221 @@
+pipeline {
+    agent {
+        node {
+            label ''
+            customWorkspace '/var/jenkins_home/workspace/SolarShare-CI-Docker'
+        }
+    }
+
+    options {
+        disableConcurrentBuilds()
+        skipStagesAfterUnstable()
+    }
+
+    stages {
+        stage('Récupérer le code') {
+            steps {
+                git branch: 'codex/devops-docker',
+                    url: 'https://github.com/nour233/SolarShare.git'
+            }
+        }
+
+        stage('Vérifier les outils') {
+            steps {
+                sh '''
+                    php -v
+                    composer --version
+                    docker --version
+                    docker compose version
+                    docker info > /dev/null
+                '''
+            }
+        }
+
+        stage('Préparer Laravel') {
+            steps {
+                sh '''
+                    mkdir -p storage/framework/cache/data \
+                        storage/framework/sessions \
+                        storage/framework/views \
+                        storage/logs bootstrap/cache
+
+                    cp .env.example .env
+                '''
+            }
+        }
+
+        stage('Installer les dépendances') {
+            steps {
+                sh 'composer install --no-interaction --prefer-dist'
+            }
+        }
+
+        stage('Lancer les tests') {
+            environment {
+                APP_ENV = 'testing'
+                DB_CONNECTION = 'sqlite'
+                DB_DATABASE = ':memory:'
+                CACHE_STORE = 'array'
+                SESSION_DRIVER = 'array'
+                QUEUE_CONNECTION = 'sync'
+                MAIL_MAILER = 'array'
+            }
+
+            steps {
+                sh '''
+                    php artisan key:generate --force
+                    php artisan config:clear
+                    mkdir -p reports
+                    rm -f reports/tests.xml
+                    php artisan test --log-junit reports/tests.xml
+                '''
+            }
+
+            post {
+                always {
+                    junit testResults: 'reports/tests.xml',
+                          allowEmptyResults: false
+                }
+            }
+        }
+
+        stage('Construire l’image Docker') {
+            steps {
+                sh '''
+                    docker build \
+                        -t solarshare-devops-php:${BUILD_NUMBER} \
+                        -t solarshare-devops-php:latest \
+                        -f devops/Dockerfile .
+                '''
+            }
+        }
+
+        stage('Préparer le déploiement') {
+            steps {
+                writeFile file: 'devops/compose.ci.yaml', text: '''
+name: solarshare-devops
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: solarshare
+      MYSQL_USER: solarshare
+      MYSQL_PASSWORD: solarshare-local-test
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  app:
+    image: solarshare-devops-php:${BUILD_NUMBER}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8002:8000"
+    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:8002
+      APP_KEY: ${SOLARSHARE_DEVOPS_KEY:?Cle Laravel manquante}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: solarshare
+      DB_USERNAME: solarshare
+      DB_PASSWORD: solarshare-local-test
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: log
+
+volumes:
+  mysql-data:
+'''
+            }
+        }
+
+        stage('Déployer SolarShare') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'solarshare-devops-app-key',
+                        variable: 'SOLARSHARE_DEVOPS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+
+                        docker compose --env-file /dev/null \
+                            -f devops/compose.ci.yaml \
+                            up -d --wait --wait-timeout 180 db
+
+                        docker compose --env-file /dev/null \
+                            -f devops/compose.ci.yaml \
+                            run --rm --no-deps app \
+                            php artisan migrate --force
+
+                        docker compose --env-file /dev/null \
+                            -f devops/compose.ci.yaml \
+                            up -d --no-deps --force-recreate app
+                    '''
+                }
+            }
+        }
+
+        stage('Vérifier le site') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'solarshare-devops-app-key',
+                        variable: 'SOLARSHARE_DEVOPS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+
+                        for tentative in $(seq 1 20); do
+                            if docker compose --env-file /dev/null \
+                                -f devops/compose.ci.yaml \
+                                exec -T app php -r \
+                                'exit(@file_get_contents("http://127.0.0.1:8000/") === false ? 1 : 0);'
+                            then
+                                echo "SolarShare répond correctement."
+                                exit 0
+                            fi
+
+                            sleep 3
+                        done
+
+                        echo "Le site ne répond pas correctement."
+                        docker compose --env-file /dev/null \
+                            -f devops/compose.ci.yaml \
+                            logs --tail=50 app
+
+                        exit 1
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Tests, image Docker, déploiement et vérification réussis.'
+            echo 'Site : http://localhost:8002'
+        }
+
+        failure {
+            echo 'Une étape a échoué : consulte Console Output.'
+        }
+    }
+}
